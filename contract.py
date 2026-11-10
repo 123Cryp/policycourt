@@ -792,13 +792,26 @@ class PolicyCourt(gl.Contract):
         }
 
     @staticmethod
-    def _appeal_summary(a) -> dict:
+    def _next_deadline(a):
+        status = a["status"]
+        if status in ("filed", "round2_filed"):
+            return a["response_deadline"], "reply"
+        if status == "remanded" and a["review"] is None:
+            return a["review_deadline"], "review"
+        if status in ("ruled", "remanded"):
+            return a["appeal_deadline"], "appeal"
+        return "", ""
+
+    def _appeal_summary(self, a) -> dict:
         verdict = a.get("verdict") or {}
+        decision = self._decision(a["decision_id"])
+        deadline, deadline_kind = self._next_deadline(a)
         return {
             "appeal_id": a["appeal_id"], "decision_id": a["decision_id"], "charter_id": a["charter_id"],
             "appellant": a["appellant"], "steward": a["steward"], "stake": a["stake"], "round": a["round"],
             "status": a["status"], "latest_outcome": verdict.get("outcome", ""), "final_outcome": a["final_outcome"],
-            "filed_at": a["filed_at"],
+            "filed_at": a["filed_at"], "decision_kind": decision["kind"], "decision_summary": decision["summary"][:160],
+            "next_deadline": deadline, "next_deadline_kind": deadline_kind,
         }
 
     def _page(self, store, count_value, offset, limit, summarize, keep=None) -> str:

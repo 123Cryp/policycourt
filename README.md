@@ -80,7 +80,9 @@ Views: `get_charter`, `list_charters`, `get_decision`, `list_decisions`, `get_ap
 
 `index.html` is a single file with no build step (genlayer-js from esm.sh, Public Sans from Google Fonts).
 
-- Cases, Charters, New charter and Account pages; case, charter and decision detail pages.
+- Home: a short introduction, live totals with real 30-day activity counted from on-chain timestamps, entry points by role (member, steward, observer), and a case grid with status colour, the next deadline as a live countdown, search and a grid/list toggle.
+- Cases, Charters, New charter and Account pages; case, charter and decision detail pages. The Account page lists decisions recorded about the connected address so a member can appeal in one step.
+- Light, dark or automatic theme, chosen in the sidebar, the top bar or Account settings.
 - Each case page shows only the actions the connected wallet may take (from `get_appeal_actions`), a progress tracker with live deadlines, the verdict seal, the three lens findings, cited articles, the case file from both sides and where the stake went.
 - Every transaction is previewed in a confirmation dialog, then tracked through four stages: wallet approval, submitted, accepted by validators, finalized. Success is only shown after the transaction is finalized. Wallet rejection, wrong network, insufficient GEN, network errors and contract rejections each get their own message.
 - Forms validate inline with the same limits the contract enforces, and buttons lock while a transaction is in flight to prevent duplicate submissions.
@@ -113,6 +115,13 @@ python3 -m unittest discover -s tests
 The offline tests use a stub SDK and mocked model answers; real validator behaviour is only covered by live runs on GenLayer Studio. Verdicts are produced by a language model and can be wrong, which is why a second appeal with a larger stake exists. This is testnet software, not legal advice.
 
 ## Changelog
+
+### v1.2.0
+
+- `list_appeals` rows now include `decision_kind`, `decision_summary`, `next_deadline` and `next_deadline_kind`, so case cards show the decision and a live countdown without extra reads.
+- Home redesign: hero with live totals and 30-day activity, role entry points, case grid with countdowns, search and grid/list layouts.
+- Account: decisions recorded about you, with a direct path to appeal.
+- Theme switcher (automatic, light, dark) and a stronger single accent colour.
 
 ### v1.1.0
 

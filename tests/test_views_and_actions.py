@@ -79,6 +79,25 @@ class ViewTests(unittest.TestCase):
         row = jl(self.c.list_appeals("final", 0, 10))["rows"][0]
         self.assertEqual((row["latest_outcome"], row["final_outcome"]), ("OVERTURNED", "OVERTURNED"))
 
+    def test_case_summaries_carry_decision_and_next_deadline(self):
+        cid, did, aid = full_case(self.c)
+        row = jl(self.c.list_appeals("", 0, 5))["rows"][0]
+        self.assertEqual((row["decision_kind"], row["next_deadline_kind"]), ("BAN", "reply"))
+        self.assertEqual(row["next_deadline"], jl(self.c.get_appeal(aid))["response_deadline"])
+        self.assertIn("spam", row["decision_summary"])
+        after_response_window(self.c)
+        rule(self.c, aid, REMAND)
+        row = jl(self.c.list_appeals("", 0, 5))["rows"][0]
+        self.assertEqual(row["next_deadline_kind"], "review")
+        set_caller(STEWARD)
+        self.c.review_remand(aid, "REAFFIRM", "Reviewed the log again and the ban stands.")
+        row = jl(self.c.list_appeals("", 0, 5))["rows"][0]
+        self.assertEqual(row["next_deadline_kind"], "appeal")
+        set_caller(MEMBER)
+        self.c.accept_ruling(aid)
+        row = jl(self.c.list_appeals("", 0, 5))["rows"][0]
+        self.assertEqual((row["next_deadline"], row["next_deadline_kind"]), ("", ""))
+
     def test_list_limits_and_offsets(self):
         cid = register(self.c)
         for i in range(5):
