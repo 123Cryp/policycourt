@@ -1,0 +1,1586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PolicyCourt</title>
+<meta name="description" content="Appeals for community and DAO governance decisions, ruled by GenLayer validators against a written charter.">
+<meta name="theme-color" content="#ECEFF3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1318" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#ECEFF3; --surface:#FFFFFF; --surface-2:#F5F7F9; --sunken:#E2E6EB;
+  --ink:#131B24; --ink-2:#435060; --ink-3:#5B6775; --line:#D5DBE2; --line-strong:#B4BDC8;
+  --seal:#8A2432; --seal-soft:#F5E6E8;
+  --primary:#131B24; --primary-hover:#2A3441; --on-primary:#FFFFFF;
+  --pos:#166239; --pos-soft:#E0F0E6; --warn:#7F5300; --warn-soft:#FAEFD6;
+  --neg:#9E2A20; --neg-soft:#FAE6E3; --info:#2B4570; --info-soft:#E3E9F3; --mute-soft:#E7EAEE;
+  --focus:#8A2432;
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --sh-raise:0 1px 2px rgba(19,27,36,.05),0 10px 28px -14px rgba(19,27,36,.22);
+  --sh-overlay:0 28px 70px -18px rgba(19,27,36,.42);
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px; --s12:48px;
+  --font:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --t-xs:12.5px; --t-sm:14px; --t-md:16px; --t-lg:18px; --t-xl:21px; --t-2xl:26px;
+  --top-h:56px; --nav-h:62px; --side-w:256px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ground:#0F1318; --surface:#171C23; --surface-2:#1C222A; --sunken:#0B0E12;
+    --ink:#E6EAF0; --ink-2:#AEB8C4; --ink-3:#8E99A6; --line:#2A323C; --line-strong:#3C4652;
+    --seal:#E07A87; --seal-soft:#3A1E23;
+    --primary:#E6EAF0; --primary-hover:#FFFFFF; --on-primary:#0F1318;
+    --pos:#6FD39A; --pos-soft:#14301F; --warn:#E9B65A; --warn-soft:#352812;
+    --neg:#F29083; --neg-soft:#3A1D19; --info:#9DB7E6; --info-soft:#1B2638; --mute-soft:#232A33;
+    --focus:#E07A87;
+    --sh-raise:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.6);
+    --sh-overlay:0 28px 70px -18px rgba(0,0,0,.75);
+    color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:var(--t-md);line-height:1.55;
+  font-feature-settings:"tnum" 1,"ss01" 1;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{margin:0;line-height:1.25;letter-spacing:-.012em;font-weight:700}
+h1{font-size:var(--t-2xl)} h2{font-size:var(--t-xl)} h3{font-size:var(--t-lg)} h4{font-size:var(--t-md)}
+p{margin:0}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+svg{flex:none}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:fixed;left:8px;top:-60px;z-index:100;background:var(--primary);color:var(--on-primary);padding:10px 14px;border-radius:var(--r-sm);text-decoration:none;font-weight:600}
+.skip:focus{top:8px}
+
+/* ---------- app shell ---------- */
+.shell{min-height:100vh}
+.topbar{position:sticky;top:0;z-index:40;height:var(--top-h);display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
+  padding:0 var(--s4);background:color-mix(in srgb,var(--ground) 88%,transparent);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:17px;letter-spacing:-.02em;min-height:44px}
+.brand-mark{width:28px;height:28px;color:var(--seal)}
+.side{display:none}
+.main{padding:var(--s5) var(--s4) calc(var(--nav-h) + var(--s10) + env(safe-area-inset-bottom));max-width:1180px;margin:0 auto}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar ul{list-style:none;margin:0;padding:4px 6px;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:var(--nav-h);padding:6px 2px;border-radius:var(--r-md);
+  text-decoration:none;color:var(--ink-3);font-size:12px;font-weight:600}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--ink)}
+.tab[aria-current="page"] svg{color:var(--seal)}
+@media (min-width:1024px){
+  .shell{display:grid;grid-template-columns:var(--side-w) 1fr}
+  .topbar,.tabbar{display:none}
+  .side{display:flex;flex-direction:column;gap:var(--s6);position:sticky;top:0;height:100vh;padding:var(--s6) var(--s4);border-right:1px solid var(--line);background:var(--surface-2);overflow:auto}
+  .side nav ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+  .side .tab{flex-direction:row;justify-content:flex-start;gap:12px;min-height:44px;padding:0 12px;font-size:var(--t-sm);color:var(--ink-2)}
+  .side .tab:hover{background:var(--mute-soft);color:var(--ink)}
+  .side .tab[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+  .side-foot{margin-top:auto;display:grid;gap:var(--s3)}
+  .main{padding:var(--s8) var(--s10) var(--s12);width:100%}
+}
+
+/* ---------- primitives ---------- */
+.stack{display:grid;gap:var(--s4)} .stack-sm{display:grid;gap:var(--s2)} .stack-lg{display:grid;gap:var(--s6)}
+.stack,.stack-sm,.stack-lg,.case-aside,.case-body,.grid-2{grid-template-columns:minmax(0,1fr)}
+.panel,.panel-flush,.addr{min-width:0}
+.row{display:flex;align-items:center;gap:var(--s3);min-width:0} .row-between{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);min-width:0}
+.wrap{flex-wrap:wrap}
+.muted{color:var(--ink-2)} .subtle{color:var(--ink-3);font-size:var(--t-sm)} .small{font-size:var(--t-sm)}
+.num{font-variant-numeric:tabular-nums}
+.break{overflow-wrap:anywhere;word-break:break-word}
+.page-head{display:grid;gap:var(--s2);margin-bottom:var(--s6)}
+.page-head .lede{color:var(--ink-2);max-width:62ch}
+.crumb{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--ink-2);text-decoration:none;font-size:var(--t-sm);font-weight:600}
+.crumb:hover{color:var(--ink)}
+.crumb svg{width:18px;height:18px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s5)}
+.panel-flush{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.panel h2,.panel h3{margin-bottom:var(--s3)}
+.section-title{font-size:var(--t-lg);font-weight:700;margin:var(--s8) 0 var(--s3)}
+.divider{height:1px;background:var(--line);margin:var(--s4) 0;border:0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:var(--r-sm);border:1px solid transparent;
+  font-weight:600;font-size:15px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease)}
+.btn svg{width:18px;height:18px}
+.btn-primary{background:var(--primary);color:var(--on-primary)} .btn-primary:hover{background:var(--primary-hover)}
+.btn-secondary{background:var(--surface);color:var(--ink);border-color:var(--line-strong)} .btn-secondary:hover{background:var(--surface-2);border-color:var(--ink-3)}
+.btn-ghost{background:transparent;color:var(--ink-2)} .btn-ghost:hover{background:var(--mute-soft);color:var(--ink)}
+.btn-danger{background:var(--surface);color:var(--neg);border-color:color-mix(in srgb,var(--neg) 45%,var(--line))} .btn-danger:hover{background:var(--neg-soft)}
+.btn-block{width:100%}
+.btn-sm{min-height:36px;padding:0 12px;font-size:var(--t-sm)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled],.btn[aria-disabled="true"]{opacity:.55;cursor:not-allowed;transform:none}
+.btn .spinner{width:16px;height:16px}
+.icon-btn{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:var(--r-sm);border:0;background:transparent;color:var(--ink-2);cursor:pointer}
+.icon-btn:hover{background:var(--mute-soft);color:var(--ink)}
+.icon-btn svg{width:20px;height:20px}
+.spinner{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 10px;border-radius:var(--r-pill);font-size:12.5px;font-weight:600;white-space:nowrap;background:var(--mute-soft);color:var(--ink-2)}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.9}
+.chip.plain::before{display:none}
+.chip.pos{background:var(--pos-soft);color:var(--pos)} .chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.neg{background:var(--neg-soft);color:var(--neg)} .chip.info{background:var(--info-soft);color:var(--info)}
+.chip.seal{background:var(--seal-soft);color:var(--seal)}
+
+.addr{display:inline-flex;align-items:center;gap:4px;max-width:100%;font-variant-numeric:tabular-nums}
+.addr code{font-family:inherit;font-size:var(--t-sm);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addr .icon-btn{width:36px;height:36px}
+.you{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:var(--r-pill);background:var(--seal-soft);color:var(--seal);font-size:11.5px;font-weight:700;vertical-align:1px}
+
+.kv{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:10px 16px;margin:0}
+.kv dt{color:var(--ink-3);font-size:var(--t-sm)} .kv dd{margin:0;min-width:0;font-size:var(--t-sm);font-weight:500}
+@media (max-width:420px){.kv{grid-template-columns:1fr;gap:2px}.kv dd{margin-bottom:10px}}
+
+/* ---------- banners, states ---------- */
+.banner{display:flex;gap:12px;align-items:flex-start;padding:var(--s3) var(--s4);border-radius:var(--r-md);border:1px solid var(--line);background:var(--surface);margin-bottom:var(--s4)}
+.banner svg{width:20px;height:20px;margin-top:2px}
+.banner.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent);color:var(--ink)} .banner.warn>svg{color:var(--warn)}
+.banner.neg{background:var(--neg-soft);border-color:color-mix(in srgb,var(--neg) 30%,transparent)} .banner.neg>svg{color:var(--neg)}
+.banner.info{background:var(--info-soft);border-color:color-mix(in srgb,var(--info) 25%,transparent)} .banner.info>svg{color:var(--info)}
+.banner .grow{flex:1;min-width:0;display:grid;gap:8px}
+.state{display:grid;justify-items:center;text-align:center;gap:var(--s3);padding:var(--s10) var(--s5);color:var(--ink-2)}
+.state svg.big{width:36px;height:36px;color:var(--ink-3)}
+.state h3{color:var(--ink);margin:0}
+.state p{max-width:46ch}
+.skel{display:block;border-radius:6px;background:linear-gradient(90deg,var(--sunken) 0%,var(--surface-2) 50%,var(--sunken) 100%);background-size:200% 100%;animation:shimmer 1.3s ease-in-out infinite}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:-100% 0}}
+
+/* ---------- lists ---------- */
+.list{list-style:none;margin:0;padding:0}
+.list>li+li{border-top:1px solid var(--line)}
+.item{display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:center;padding:var(--s4) var(--s5);text-decoration:none;min-height:64px}
+.item:hover{background:var(--surface-2)}
+.item .title{font-weight:600;min-width:0}
+.item .meta{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--ink-3);font-size:var(--t-sm)}
+.item .lead{grid-column:1 / -1;color:var(--ink-2);font-size:var(--t-sm);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media (min-width:640px){.item .meta{grid-column:1}.item .lead{grid-column:1}}
+
+.statstrip{display:grid;grid-template-columns:repeat(2,1fr);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin-bottom:var(--s6)}
+.stat{padding:var(--s4) var(--s5);display:grid;gap:2px}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat:nth-child(3){border-left:0;border-top:1px solid var(--line)} .stat:nth-child(4){border-top:1px solid var(--line)}
+.stat b{font-size:24px;font-weight:700;letter-spacing:-.02em}
+.stat span{font-size:var(--t-sm);color:var(--ink-3)}
+@media (min-width:640px){.statstrip{grid-template-columns:repeat(4,1fr)}.stat:nth-child(3){border-left:1px solid var(--line);border-top:0}.stat:nth-child(4){border-top:0}}
+
+.segmented{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px;margin:0 0 var(--s3)}
+.segmented::-webkit-scrollbar{display:none}
+.seg{flex:none;min-height:40px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-weight:600;font-size:var(--t-sm);cursor:pointer}
+.seg:hover{border-color:var(--line-strong);color:var(--ink)}
+.seg[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+
+.how{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);margin-bottom:var(--s6)}
+.how summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:0 var(--s5);font-weight:600}
+.how summary::-webkit-details-marker{display:none}
+.how summary svg{width:18px;height:18px;transition:transform .2s var(--ease);color:var(--ink-3)}
+.how[open] summary svg{transform:rotate(180deg)}
+.how ol{margin:0;padding:0 var(--s5) var(--s5);list-style:none;display:grid;gap:var(--s4);counter-reset:step}
+@media (min-width:768px){.how ol{grid-template-columns:repeat(4,1fr)}}
+.how li{counter-increment:step;display:grid;gap:4px;font-size:var(--t-sm);color:var(--ink-2)}
+.how li b{color:var(--ink);font-size:15px}
+.how li b::before{content:counter(step);display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:50%;background:var(--seal-soft);color:var(--seal);font-size:12px}
+
+/* ---------- articles ---------- */
+.articles{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
+.article{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:var(--s3) var(--s4);border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);font-size:15px}
+.article .n{font-weight:700;color:var(--ink-3);min-width:46px;font-size:var(--t-sm);padding-top:1px}
+.article.hit{border-color:color-mix(in srgb,var(--seal) 45%,var(--line));background:var(--seal-soft)}
+.article.hit .n{color:var(--seal)}
+
+/* ---------- forms ---------- */
+.form{display:grid;gap:var(--s5)}
+.field{display:grid;gap:6px;min-width:0}
+.field label,.field .label{font-weight:600;font-size:var(--t-sm)}
+.req{color:var(--seal);margin-left:2px}
+.input{width:100%;min-height:46px;padding:11px 13px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface);font-size:16px;transition:border-color .15s,box-shadow .15s}
+textarea.input{min-height:110px;resize:vertical;line-height:1.5}
+select.input{appearance:none;-webkit-appearance:none;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%235B6775' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.input:hover{border-color:var(--ink-3)}
+.input:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 22%,transparent)}
+.input[aria-invalid="true"]{border-color:var(--neg)}
+.field-foot{display:flex;justify-content:space-between;gap:12px;font-size:var(--t-xs);color:var(--ink-3);min-height:18px}
+.field-err{color:var(--neg);font-weight:600;display:flex;gap:6px;align-items:flex-start}
+.field-err svg{width:15px;height:15px;margin-top:2px}
+.counter.over{color:var(--neg);font-weight:700}
+.grid-2{display:grid;gap:var(--s5)}
+@media (min-width:640px){.grid-2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.preview{background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:var(--r-md);padding:var(--s4);font-size:var(--t-sm)}
+.preview h4{font-size:var(--t-sm);margin-bottom:8px}
+.preview ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.form-actions{display:flex;gap:var(--s3);flex-wrap:wrap}
+.form-actions .btn{flex:1 1 200px}
+
+/* ---------- case page ---------- */
+.case{display:grid;gap:var(--s5);grid-template-areas:"head" "aside" "body"}
+.case-head{grid-area:head} .case-aside{grid-area:aside;display:grid;gap:var(--s4);align-content:start} .case-body{grid-area:body;display:grid;gap:var(--s5);min-width:0}
+@media (min-width:1024px){
+  .case{grid-template-columns:minmax(0,1fr) 340px;grid-template-areas:"head head" "body aside";column-gap:var(--s8)}
+  .case-aside{position:sticky;top:var(--s6)}
+}
+.case-title{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.facts{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:var(--s3);font-size:var(--t-sm);color:var(--ink-2)}
+.facts b{color:var(--ink);font-weight:600}
+
+.tracker{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.tracker li{display:grid;grid-template-columns:24px 1fr;gap:12px;position:relative;padding-bottom:var(--s4)}
+.tracker li:last-child{padding-bottom:0}
+.tracker li::before{content:"";position:absolute;left:11px;top:24px;bottom:2px;width:2px;background:var(--line)}
+.tracker li:last-child::before{display:none}
+.tracker .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line-strong);background:var(--surface);z-index:1}
+.tracker .dot svg{width:14px;height:14px}
+.tracker .done .dot{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.tracker .done::before{background:var(--ink)}
+.tracker .now .dot{border-color:var(--seal);box-shadow:0 0 0 4px var(--seal-soft)}
+.tracker .now .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--seal)}
+.tracker .t{font-weight:600;font-size:var(--t-sm)}
+.tracker .d{font-size:var(--t-xs);color:var(--ink-3)}
+.tracker .upcoming .t{color:var(--ink-3);font-weight:500}
+
+.deadline{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--line);font-size:var(--t-sm)}
+.deadline svg{width:18px;height:18px;color:var(--ink-3)}
+.deadline b{font-variant-numeric:tabular-nums}
+
+.role{display:flex;align-items:center;gap:10px;font-size:var(--t-sm);font-weight:600}
+.role .badge{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--seal-soft);color:var(--seal)}
+.role .badge svg{width:17px;height:17px}
+.action{border-top:1px solid var(--line);padding-top:var(--s4);display:grid;gap:var(--s3)}
+.action:first-of-type{border-top:0;padding-top:0}
+.action p{font-size:var(--t-sm);color:var(--ink-2)}
+.action-form{display:grid;gap:var(--s4);padding:var(--s4);border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--line)}
+.action-form[hidden]{display:none}
+
+.verdict{display:grid;gap:var(--s5);grid-template-columns:1fr;padding:var(--s5)}
+@media (min-width:640px){.verdict{grid-template-columns:132px 1fr;align-items:start}}
+.seal{width:120px;height:120px;transform:rotate(-7deg)}
+.seal.stamp{animation:stamp .55s var(--ease) both}
+@keyframes stamp{0%{opacity:0;transform:rotate(-7deg) scale(1.35)}60%{opacity:1;transform:rotate(-7deg) scale(.96)}100%{transform:rotate(-7deg) scale(1)}}
+.verdict-text{display:grid;gap:var(--s3);min-width:0}
+.verdict-text .k{font-size:var(--t-sm);color:var(--ink-3)}
+.verdict-text h2{font-size:var(--t-2xl)}
+.reason{font-size:17px;line-height:1.6;padding-left:var(--s4);border-left:3px solid var(--line-strong);color:var(--ink)}
+.lenses{border-top:1px solid var(--line)}
+.lens{display:grid;grid-template-columns:1fr;gap:4px 16px;padding:var(--s4) var(--s5);border-bottom:1px solid var(--line)}
+.lens:last-child{border-bottom:0}
+@media (min-width:640px){.lens{grid-template-columns:200px 1fr}}
+.lens .q b{display:block;font-size:15px} .lens .q span{font-size:var(--t-xs);color:var(--ink-3)}
+.lens .a{display:grid;gap:6px;justify-items:start;font-size:var(--t-sm);color:var(--ink-2)}
+.split{display:flex;height:10px;border-radius:var(--r-pill);overflow:hidden;background:var(--sunken)}
+.split i{display:block;height:100%} .split .a{background:var(--pos)} .split .b{background:var(--ink-3)}
+.legend{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;font-size:var(--t-sm);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+.thread{display:grid;gap:var(--s3)}
+.msg{border-radius:var(--r-md);padding:var(--s3) var(--s4);border:1px solid var(--line);background:var(--surface);display:grid;gap:4px}
+.msg .who{display:flex;gap:8px;align-items:center;font-size:var(--t-xs);font-weight:700;color:var(--ink-3)}
+.msg .who i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.msg.appellant .who i{background:var(--info)} .msg.steward .who i{background:var(--seal)}
+.msg.steward{background:var(--surface-2)}
+@media (min-width:640px){.msg.appellant{margin-right:12%}.msg.steward{margin-left:12%}}
+.msg p{font-size:15px;overflow-wrap:anywhere}
+
+.timeline{list-style:none;margin:0;padding:0;display:grid;gap:var(--s3)}
+.timeline li{display:grid;grid-template-columns:auto 1fr;gap:12px;font-size:var(--t-sm)}
+.timeline time{color:var(--ink-3);font-size:var(--t-xs);display:block}
+.timeline .ic{width:28px;height:28px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2)}
+.timeline .ic svg{width:14px;height:14px}
+
+/* ---------- dialog ---------- */
+dialog{border:0;padding:0;background:transparent;color:inherit;max-width:100vw;max-height:100dvh;margin:auto}
+dialog::backdrop{background:rgba(9,13,18,.55)}
+.sheet{width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--sh-overlay);border:1px solid var(--line)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:var(--s4) var(--s4) var(--s2) var(--s5)}
+.sheet-body{padding:var(--s2) var(--s5) var(--s5);display:grid;gap:var(--s4)}
+.sheet-foot{display:flex;gap:var(--s3);padding:var(--s4) var(--s5);border-top:1px solid var(--line);background:var(--surface-2);position:sticky;bottom:0}
+.sheet-foot .btn{flex:1}
+@media (max-width:560px){
+  dialog.as-sheet{margin:auto 0 0;width:100vw}
+  dialog.as-sheet .sheet{width:100vw;border-radius:var(--r-lg) var(--r-lg) 0 0;max-height:92dvh;padding-bottom:env(safe-area-inset-bottom)}
+}
+dialog[open] .sheet{animation:rise .22s var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.preview-list{margin:0;display:grid;gap:0;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+.preview-list div{display:grid;grid-template-columns:120px 1fr;gap:12px;padding:10px 14px;font-size:var(--t-sm)}
+.preview-list div+div{border-top:1px solid var(--line)}
+.preview-list dt{color:var(--ink-3)} .preview-list dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+@media (max-width:420px){.preview-list div{grid-template-columns:1fr;gap:2px}}
+.option{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:var(--s4);border:1px solid var(--line);border-radius:var(--r-md)}
+.option .ic{width:36px;height:36px;border-radius:var(--r-sm);background:var(--surface-2);display:grid;place-items:center;color:var(--ink-2)}
+.option .ic svg{width:20px;height:20px}
+.option .body{display:grid;gap:8px;min-width:0}
+
+/* ---------- toasts ---------- */
+.toasts{position:fixed;z-index:80;left:12px;right:12px;bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));display:grid;gap:10px;pointer-events:none}
+@media (min-width:1024px){.toasts{left:auto;right:24px;bottom:24px;width:380px}}
+.toast{pointer-events:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-raise);padding:var(--s3) var(--s3) var(--s3) var(--s4);display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;animation:rise .2s var(--ease)}
+.toast>svg{width:20px;height:20px;margin-top:2px}
+.toast.pos>svg{color:var(--pos)} .toast.neg>svg{color:var(--neg)} .toast.warn>svg{color:var(--warn)} .toast.info>svg{color:var(--info)}
+.toast .tt{font-weight:700;font-size:15px} .toast .tb{font-size:var(--t-sm);color:var(--ink-2);overflow-wrap:anywhere}
+.toast .icon-btn{width:36px;height:36px;margin:-4px -4px 0 0}
+.steps{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px;font-size:var(--t-sm)}
+.steps li{display:flex;gap:8px;align-items:center;color:var(--ink-3)}
+.steps li svg{width:16px;height:16px}
+.steps li.done{color:var(--ink)} .steps li.done svg{color:var(--pos)}
+.steps li.now{color:var(--ink);font-weight:600}
+.steps li.err{color:var(--neg);font-weight:600}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <header class="topbar">
+    <a class="brand" href="#/" aria-label="PolicyCourt home"><span data-icon="seal" class="brand-mark"></span>PolicyCourt</a>
+    <div id="walletSlotTop"></div>
+  </header>
+  <aside class="side" aria-label="Sidebar">
+    <a class="brand" href="#/" aria-label="PolicyCourt home"><span data-icon="seal" class="brand-mark"></span>PolicyCourt</a>
+    <nav aria-label="Main"><ul id="sideNav"></ul></nav>
+    <div class="side-foot">
+      <div id="walletSlotSide"></div>
+      <div class="subtle" id="contractSide"></div>
+    </div>
+  </aside>
+  <main class="main" id="main" tabindex="-1"><div id="banners"></div><div id="view"></div></main>
+  <nav class="tabbar" aria-label="Main"><ul id="tabNav"></ul></nav>
+</div>
+<div class="toasts" id="toasts" aria-live="polite" aria-relevant="additions"></div>
+<div class="sr" id="announcer" aria-live="assertive"></div>
+
+<script type="module">
+import { createClient, createAccount } from "https://esm.sh/genlayer-js@latest";
+import { studionet } from "https://esm.sh/genlayer-js@latest/chains";
+
+/* =====================================================================
+   Constants mirroring the contract's rules
+   ===================================================================== */
+const DEFAULT_CONTRACT = "0x0000000000000000000000000000000000000000";
+const WEI = 1000000000000000000n;
+const LIMITS = {
+  name: [3, 80], article: [10, 400], articles: [2, 12], stakeGen: [1, 1000000], window: [60, 2592000],
+  upheldBps: [0, 5000], remandBps: [5000, 10000], summary: [10, 300], rationale: [10, 600],
+  grounds: [20, 1200], evidence: [10, 800], response: [20, 1200], note: [10, 600], evidencePerSide: 6,
+};
+const KINDS = { BAN: "Ban", SUSPENSION: "Suspension", PROPOSAL_REJECTION: "Proposal rejection", ROLE_REMOVAL: "Role removal", FUNDING_DENIAL: "Funding denial", OTHER: "Other decision" };
+const RULING = {
+  UPHELD: { title: "Decision upheld", short: "Upheld", tone: "info", seal: "UPHELD", text: "The panel found the steward's decision justified under the charter." },
+  OVERTURNED: { title: "Decision overturned", short: "Overturned", tone: "pos", seal: "OVERTURNED", text: "The panel found the decision wrong under the charter. It is lifted." },
+  REMANDED: { title: "Sent back to the steward", short: "Remanded", tone: "warn", seal: "REMANDED", text: "The panel found a fixable flaw. The steward must reverse or reaffirm the decision." },
+};
+const FINAL = {
+  UPHELD: ["Upheld", "info"], OVERTURNED: ["Overturned", "pos"], REMANDED: ["Reaffirmed after review", "info"],
+  REVERSED: ["Reversed by steward", "pos"], REMANDED_UNANSWERED: ["Steward did not review", "pos"], VOID: ["Voided", ""],
+};
+const STATUS = {
+  filed: ["Awaiting response", "warn"], round2_filed: ["Second appeal", "warn"], ruled: ["Ruled, appeal open", "seal"],
+  remanded: ["With the steward", "warn"], final: ["Settled", ""], void: ["Voided", ""],
+};
+const DECISION_STATUS = {
+  in_force: ["In force", "neg"], under_appeal: ["Under appeal", "warn"], overturned: ["Overturned", "pos"], reversed: ["Reversed", "pos"],
+  upheld: ["Upheld", "info"], stands: ["Stands", ""],
+};
+const LENSES = [
+  ["text", "Charter text", "Was an article actually broken?"],
+  ["proportion", "Proportion", "Does the sanction fit what the charter provides?"],
+  ["process", "Procedure", "Did the steward follow the charter's procedure?"],
+];
+const FINDING = { SUPPORTS_DECISION: ["Supports the decision", "info"], AGAINST_DECISION: ["Against the decision", "neg"], INSUFFICIENT: ["Not enough to decide", "warn"] };
+
+/* =====================================================================
+   Icons (one stroke set, 24px grid)
+   ===================================================================== */
+const ICONS = {
+  seal: '<circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="6.5"/><path d="M12 8.5v7M9 10.5h6"/>',
+  cases: '<path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M4 12h16"/>',
+  charter: '<path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M9 12h6M9 16h6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  wallet: '<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  alert: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.01"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+  refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/>',
+  spin: '<path d="M12 3a9 9 0 1 0 9 9" />',
+  gavel: '<path d="m14 4 6 6M11 7l6 6M12.5 5.5l-6 6 4 4 6-6M8.5 13.5 3 19M3 21h9"/>',
+  file: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>',
+  shield: '<path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.4-.9-1.4-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.6 2.5 2 2.5.9 2.5 2-1 2-2.5 2c-1.2 0-2.2-.6-2.6-1.6M12 6.5V8M12 16v1.5"/>',
+  send: '<path d="M4 12 20 4l-4 16-4-7z"/><path d="m12 13 8-9"/>',
+  circle: '<circle cx="12" cy="12" r="8"/>',
+  inbox: '<path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/>',
+};
+function svgIcon(name, cls) {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor");
+  s.setAttribute("stroke-width", "1.75"); s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round");
+  s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
+  if (cls) s.setAttribute("class", cls);
+  s.append(...iconNodes(name));
+  return s;
+}
+const iconCache = new Map();
+function iconNodes(name) {
+  if (!iconCache.has(name)) {
+    const doc = new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${ICONS[name] || ICONS.circle}</svg>`, "image/svg+xml");
+    iconCache.set(name, [...doc.documentElement.childNodes]);
+  }
+  return iconCache.get(name).map((n) => document.importNode(n, true));
+}
+document.querySelectorAll("[data-icon]").forEach((el) => el.replaceWith(Object.assign(svgIcon(el.dataset.icon, el.className))));
+
+/* =====================================================================
+   DOM helpers: contract data is only ever set as text
+   ===================================================================== */
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v === undefined || v === null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else if (k === "dataset") Object.assign(el.dataset, v);
+    else if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : String(v));
+  }
+  append(el, kids);
+  return el;
+}
+function append(el, kids) {
+  for (const kid of (Array.isArray(kids) ? kids : [kids]).flat(Infinity)) {
+    if (kid === null || kid === undefined || kid === false) continue;
+    el.appendChild(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+const $ = (id) => document.getElementById(id);
+const same = (a, b) => !!a && !!b && String(a).toLowerCase() === String(b).toLowerCase();
+const shortAddr = (a) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "");
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+function announce(text) { const a = $("announcer"); a.textContent = ""; setTimeout(() => { a.textContent = text; }, 30); }
+
+const dtf = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+function when(iso) { const d = new Date(iso); return isNaN(d) ? String(iso) : dtf.format(d); }
+function timeEl(iso) { return h("time", { datetime: iso, text: when(iso) }); }
+function duration(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(s / 86400), hh = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (d) return `${d}d ${hh}h`;
+  if (hh) return `${hh}h ${m}m`;
+  if (m) return `${m}m ${sec.toString().padStart(2, "0")}s`;
+  return `${sec}s`;
+}
+function windowText(sec) {
+  sec = Number(sec);
+  if (sec % 86400 === 0) return plural(sec / 86400, "day", "days");
+  if (sec % 3600 === 0) return plural(sec / 3600, "hour", "hours");
+  if (sec % 60 === 0) return plural(sec / 60, "minute", "minutes");
+  return plural(sec, "second", "seconds");
+}
+function countdown(iso, open, closed) {
+  const el = h("b", { dataset: { deadline: iso, open, closed } });
+  tickOne(el);
+  return el;
+}
+function tickOne(el) {
+  const left = new Date(el.dataset.deadline).getTime() - Date.now();
+  el.textContent = left > 0 ? `${el.dataset.open} ${duration(left)}` : el.dataset.closed;
+}
+setInterval(() => document.querySelectorAll("[data-deadline]").forEach(tickOne), 1000);
+
+function genToWei(text) {
+  const t = String(text).trim();
+  if (!/^\d+(\.\d{1,18})?$/.test(t)) return null;
+  const [w, f = ""] = t.split(".");
+  return BigInt(w) * WEI + BigInt((f + "0".repeat(18)).slice(0, 18));
+}
+function gen(wei) {
+  let v; try { v = BigInt(wei); } catch { return String(wei); }
+  const whole = v / WEI, frac = (v % WEI).toString().padStart(18, "0").replace(/0+$/, "").slice(0, 4);
+  return `${whole.toLocaleString()}${frac ? "." + frac : ""} GEN`;
+}
+const pctOf = (bps) => `${(Number(bps) / 100).toLocaleString(undefined, { maximumFractionDigits: 2 })}%`;
+const shareWei = (wei, bps) => (BigInt(wei) * BigInt(bps)) / 10000n;
+
+/* =====================================================================
+   Components
+   ===================================================================== */
+function button(label, opts = {}) {
+  const { variant = "primary", icon, onclick, key, block, small, type = "button", describedby } = opts;
+  const b = h("button", { type, class: `btn btn-${variant}${block ? " btn-block" : ""}${small ? " btn-sm" : ""}`, "aria-describedby": describedby, dataset: key ? { busyKey: key } : undefined },
+    icon ? svgIcon(icon) : null, h("span", { text: label }));
+  if (onclick) b.addEventListener("click", onclick);
+  if (key && busy.has(key)) setButtonBusy(b, true);
+  return b;
+}
+function setButtonBusy(b, on) {
+  b.disabled = on; b.setAttribute("aria-busy", on ? "true" : "false");
+  const first = b.firstElementChild;
+  if (on && !b.querySelector(".spinner")) b.insertBefore(svgIcon("spin", "spinner"), first);
+  if (!on) b.querySelectorAll(".spinner").forEach((s) => s.remove());
+}
+function chip(text, tone, plain) { return h("span", { class: `chip${tone ? " " + tone : ""}${plain ? " plain" : ""}`, text }); }
+function addrView(address, opts = {}) {
+  const you = state.wallet.address && same(address, state.wallet.address);
+  return h("span", { class: "addr" },
+    h("code", { title: address, text: opts.full ? address : shortAddr(address) }),
+    you ? h("span", { class: "you", text: "You" }) : null,
+    h("button", { class: "icon-btn", type: "button", "aria-label": `Copy address ${address}`, onclick: () => copyText(address, "Address copied") }, svgIcon("copy")));
+}
+async function copyText(text, msg) {
+  try { await navigator.clipboard.writeText(text); toast({ tone: "pos", title: msg }); }
+  catch { toast({ tone: "warn", title: "Copy is blocked in this browser", body: text }); }
+}
+function skeleton(rows = 4) {
+  return h("div", { class: "panel stack", "aria-busy": "true", "aria-label": "Loading" },
+    h("span", { class: "skel", style: "height:22px;width:45%" }),
+    ...Array.from({ length: rows }, (_, i) => h("span", { class: "skel", style: `height:14px;width:${92 - i * 11}%` })));
+}
+function emptyState({ icon = "inbox", title, body, action }) {
+  return h("div", { class: "state" }, svgIcon(icon, "big"), h("h3", { text: title }), body ? h("p", { text: body }) : null, action || null);
+}
+function errorState(err, retry) {
+  const e = normalizeError(err);
+  return h("div", { class: "panel" }, emptyState({
+    icon: e.kind === "network" ? "refresh" : "alert", title: e.title, body: e.body,
+    action: retry ? button("Try again", { variant: "secondary", icon: "refresh", onclick: retry }) : null,
+  }));
+}
+function banner(tone, icon, title, body, actions) {
+  return h("div", { class: `banner ${tone}`, role: tone === "neg" ? "alert" : "status" }, svgIcon(icon),
+    h("div", { class: "grow" }, h("b", { text: title }), body ? h("span", { class: "small", text: body }) : null, actions ? h("div", { class: "row wrap" }, actions) : null));
+}
+
+/* ---------- form fields with inline validation ---------- */
+let fieldSeq = 0;
+function field(opts) {
+  const id = `f${++fieldSeq}`;
+  const { label, required, hint, multiline, type = "text", placeholder, value = "", max, inputmode, autocomplete = "off", options, validate, onInput, rows } = opts;
+  const hintId = `${id}-h`, errId = `${id}-e`;
+  let input;
+  if (options) {
+    input = h("select", { id, class: "input", "aria-describedby": hintId }, options.map(([v, t]) => h("option", { value: v, text: t, selected: v === value })));
+  } else if (multiline) {
+    input = h("textarea", { id, class: "input", placeholder, rows, "aria-describedby": hintId, maxlength: max ? max + 200 : undefined, spellcheck: "true" });
+    input.value = value;
+  } else {
+    input = h("input", { id, class: "input", type, placeholder, inputmode, autocomplete, autocapitalize: "off", spellcheck: "false", "aria-describedby": hintId, value });
+  }
+  if (required) input.setAttribute("aria-required", "true");
+  const err = h("span", { class: "field-err", id: errId, hidden: true });
+  const counter = max ? h("span", { class: "counter num", "aria-hidden": "true" }) : null;
+  const hintEl = h("span", { id: hintId, text: hint || "" });
+  const wrap = h("div", { class: "field" },
+    h("label", { for: id }, label, required ? h("span", { class: "req", "aria-hidden": "true", text: "*" }) : null, required ? h("span", { class: "sr", text: " (required)" }) : null),
+    input, h("div", { class: "field-foot" }, h("div", {}, err, hintEl), counter));
+  let touched = false;
+  const api = {
+    el: wrap, input,
+    get value() { return input.value; },
+    set value(v) { input.value = v; refreshCounter(); },
+    check() {
+      const v = input.value.trim();
+      let msg = "";
+      if (required && !v) msg = "This field is required.";
+      else if (validate) msg = validate(v) || "";
+      setError(msg);
+      return !msg;
+    },
+  };
+  function setError(msg) {
+    err.replaceChildren(...(msg ? [svgIcon("alert"), h("span", { text: msg })] : []));
+    err.hidden = !msg; hintEl.hidden = !!msg;
+    input.setAttribute("aria-invalid", msg ? "true" : "false");
+    input.setAttribute("aria-describedby", msg ? errId : hintId);
+  }
+  function refreshCounter() {
+    if (!counter) return;
+    const n = input.value.trim().replace(/\s+/g, " ").length;
+    counter.textContent = `${n}/${max}`;
+    counter.classList.toggle("over", n > max);
+  }
+  input.addEventListener("input", () => { refreshCounter(); if (touched) api.check(); onInput && onInput(input.value); });
+  input.addEventListener("change", () => { onInput && onInput(input.value); });
+  input.addEventListener("blur", () => { touched = true; api.check(); });
+  refreshCounter();
+  return api;
+}
+function checkAll(fields) {
+  let first = null;
+  for (const f of fields) if (!f.check() && !first) first = f;
+  if (first) { first.input.focus(); announce("Some fields need attention."); }
+  return !first;
+}
+const clean = (v) => String(v).trim().replace(/\s+/g, " ");
+const lenRule = (min, max, what = "This") => (v) => {
+  const n = clean(v).length;
+  if (n < min) return `${what} needs at least ${min} characters (${n} now).`;
+  if (n > max) return `${what} can be at most ${max} characters.`;
+  return "";
+};
+const optLenRule = (max) => (v) => (clean(v).length > max ? `Keep this under ${max} characters.` : "");
+const addrRule = (v) => (/^0x[0-9a-fA-F]{40}$/.test(v) ? "" : "Enter a wallet address: 0x followed by 40 hex characters.");
+function splitArticles(text) { return String(text).replace(/\n/g, "|").split("|").map(clean).filter(Boolean); }
+function parseRefs(text, count) {
+  const out = [];
+  for (const p of String(text).replace(/;/g, ",").split(",").map((x) => x.trim()).filter(Boolean)) {
+    if (!/^\d+$/.test(p)) return null;
+    const n = Number(p);
+    if (n < 1 || n > count) return null;
+    if (!out.includes(n)) out.push(n);
+  }
+  return out;
+}
+
+/* ---------- dialogs (native <dialog>: focus trap, Esc and inert background) ---------- */
+function openDialog({ title, body, actions = [], sheet = true, onClose }) {
+  const dlg = h("dialog", { class: sheet ? "as-sheet" : "", "aria-labelledby": "dlgTitle" });
+  const opener = document.activeElement;
+  const close = (value) => { if (dlg.open) dlg.close(value ?? ""); };
+  const panel = h("div", { class: "sheet" },
+    h("div", { class: "sheet-head" }, h("h2", { id: "dlgTitle", text: title }),
+      h("button", { class: "icon-btn", type: "button", "aria-label": "Close", onclick: () => close("") }, svgIcon("x"))),
+    h("div", { class: "sheet-body" }, body),
+    actions.length ? h("div", { class: "sheet-foot" }, actions) : null);
+  dlg.append(panel);
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) close(""); });
+  dlg.addEventListener("close", () => { dlg.remove(); onClose && onClose(dlg.returnValue); if (opener && opener.isConnected) opener.focus(); });
+  document.body.append(dlg);
+  dlg.showModal();
+  dlg.querySelector(".sheet-head .icon-btn").focus();
+  return { dlg, close };
+}
+function confirmTx({ title, intro, rows, confirmLabel, danger }) {
+  return new Promise((resolve) => {
+    let ok = false;
+    const { close } = openDialog({
+      title,
+      body: [intro ? h("p", { class: "muted", text: intro }) : null,
+        h("dl", { class: "preview-list" }, rows.map(([k, v]) => h("div", {}, h("dt", { text: k }), h("dd", {}, v)))),
+        h("p", { class: "subtle", text: "Your wallet will ask you to sign. Nothing changes on-chain until validators accept the transaction." })],
+      actions: [button("Cancel", { variant: "secondary", onclick: () => close("") }),
+        button(confirmLabel, { variant: danger ? "danger" : "primary", onclick: () => { ok = true; close("ok"); } })],
+      onClose: () => resolve(ok),
+    });
+  });
+}
+
+/* ---------- toasts ---------- */
+function toast({ tone = "info", title, body, timeout = 5000 }) {
+  const icon = { pos: "check", neg: "alert", warn: "alert", info: "info" }[tone];
+  const t = h("div", { class: `toast ${tone}`, role: tone === "neg" ? "alert" : "status" }, svgIcon(icon),
+    h("div", {}, h("div", { class: "tt", text: title }), body ? h("div", { class: "tb", text: body }) : null),
+    h("button", { class: "icon-btn", type: "button", "aria-label": "Dismiss", onclick: () => t.remove() }, svgIcon("x")));
+  $("toasts").append(t);
+  if (timeout) setTimeout(() => t.remove(), timeout);
+  return t;
+}
+function txTracker(title) {
+  const labels = [["sign", "Approve in your wallet"], ["submitted", "Submitted to GenLayer"], ["accepted", "Accepted by validators"], ["finalized", "Finalized"]];
+  const items = labels.map(([k, l]) => h("li", { dataset: { k } }, svgIcon("circle"), h("span", { text: l })));
+  const head = h("div", { class: "tt", text: title });
+  const note = h("div", { class: "tb" });
+  const icon = svgIcon("spin", "spinner");
+  const closeBtn = h("button", { class: "icon-btn", type: "button", "aria-label": "Dismiss", onclick: () => t.remove() }, svgIcon("x"));
+  const t = h("div", { class: "toast info", role: "status" }, icon, h("div", {}, head, note, h("ol", { class: "steps" }, items)), closeBtn);
+  $("toasts").append(t);
+  const setIcon = (name, cls) => { const n = svgIcon(name, cls); t.replaceChild(n, t.firstChild); };
+  return {
+    step(key, text) {
+      let reached = true;
+      for (const li of items) {
+        li.className = "";
+        if (li.dataset.k === key) { li.classList.add("now"); reached = false; li.replaceChild(svgIcon("spin", "spinner"), li.firstChild); }
+        else if (reached) { li.classList.add("done"); li.replaceChild(svgIcon("check"), li.firstChild); }
+        else li.replaceChild(svgIcon("circle"), li.firstChild);
+      }
+      note.textContent = text || "";
+    },
+    done(text) {
+      items.forEach((li) => { li.className = "done"; li.replaceChild(svgIcon("check"), li.firstChild); });
+      t.className = "toast pos"; setIcon("check"); note.textContent = text || ""; announce(`${title}: finalized.`);
+      setTimeout(() => t.remove(), 7000);
+    },
+    fail(heading, text) {
+      const cur = items.find((li) => li.classList.contains("now"));
+      if (cur) { cur.className = "err"; cur.replaceChild(svgIcon("x"), cur.firstChild); }
+      t.className = "toast neg"; t.setAttribute("role", "alert"); setIcon("alert");
+      head.textContent = heading; note.textContent = text || "";
+    },
+  };
+}
+
+/* =====================================================================
+   Contract address
+   ===================================================================== */
+const isAddr = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v || ""));
+function loadContract() {
+  try { const q = new URLSearchParams(location.search).get("contract"); if (isAddr(q)) { localStorage.setItem("policycourt.contract", q); return q; } } catch {}
+  try { const s = localStorage.getItem("policycourt.contract"); if (isAddr(s)) return s; } catch {}
+  return DEFAULT_CONTRACT;
+}
+let CONTRACT = loadContract();
+const contractMissing = () => /^0x0{40}$/.test(CONTRACT);
+function setContract(addr) {
+  CONTRACT = addr;
+  try { localStorage.setItem("policycourt.contract", addr); } catch {}
+  renderChrome(); route();
+}
+
+/* =====================================================================
+   Reads
+   ===================================================================== */
+class AppError extends Error { constructor(kind, title, body) { super(title); this.kind = kind; this.title = title; this.body = body; } }
+function normalizeError(e) {
+  if (e instanceof AppError) return e;
+  const msg = String(e?.shortMessage || e?.message || e || "");
+  if (/fetch|network|timeout|ECONN|Load failed|NetworkError/i.test(msg)) return new AppError("network", "Can't reach GenLayer Studio", "Check your connection and try again. Your data is safe on-chain.");
+  if (/No (charter|decision|appeal) found/i.test(msg)) return new AppError("notfound", "Not found", msg.match(/No (charter|decision|appeal) found[^."]*/i)[0] + ".");
+  if (/contract.*not.*(found|exist)|not deployed/i.test(msg)) return new AppError("contract", "No PolicyCourt contract at this address", "Check the contract address in Account settings.");
+  return new AppError("unknown", "Something went wrong while loading", msg.slice(0, 220));
+}
+let readClient = null;
+function rc() { if (!readClient) readClient = createClient({ chain: studionet }); return readClient; }
+async function view(functionName, args = []) {
+  if (contractMissing()) throw new AppError("setup", "No contract address set", "Add the deployed PolicyCourt address to start.");
+  const raw = await rc().readContract({ address: CONTRACT, functionName, args });
+  return typeof raw === "string" && /^[\[{"]/.test(raw.trim()) ? JSON.parse(raw) : raw;
+}
+let charterNames = new Map();
+async function loadCharterNames() {
+  try { const p = await view("list_charters", [0, 30]); charterNames = new Map(p.rows.map((c) => [c.charter_id, c.name])); } catch {}
+}
+
+/* =====================================================================
+   Wallet
+   ===================================================================== */
+const state = { wallet: { mode: null, address: null, client: null, wrongNetwork: false } };
+const TEST_SLOT = "policycourt.testsession";
+const chainHex = () => "0x" + Number(studionet.id).toString(16);
+function setWallet(mode, address, client) {
+  state.wallet = { mode, address, client, wrongNetwork: false };
+  renderChrome(); route();
+  if (mode === "injected") checkNetwork();
+}
+async function checkNetwork() {
+  if (state.wallet.mode !== "injected" || !window.ethereum) return;
+  try {
+    const cur = await window.ethereum.request({ method: "eth_chainId" });
+    const wrong = String(cur).toLowerCase() !== chainHex().toLowerCase();
+    if (wrong !== state.wallet.wrongNetwork) { state.wallet.wrongNetwork = wrong; renderBanners(); }
+  } catch {}
+}
+async function switchNetwork() {
+  try {
+    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: chainHex() }] });
+  } catch (e) {
+    if (e?.code === 4001) throw e;
+    await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{
+      chainId: chainHex(), chainName: studionet.name || "GenLayer Studio",
+      nativeCurrency: studionet.nativeCurrency || { name: "GEN", symbol: "GEN", decimals: 18 },
+      rpcUrls: studionet.rpcUrls?.default?.http || [] }] });
+  }
+  await checkNetwork();
+}
+async function connectInjected() {
+  if (!window.ethereum) throw new AppError("nowallet", "No browser wallet found", "Open this page in your wallet app's browser, or use a Studio account key.");
+  const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+  if (!accounts?.length) throw new AppError("nowallet", "No account was shared", "Unlock your wallet and try again.");
+  setWallet("injected", accounts[0], createClient({ chain: studionet, account: accounts[0] }));
+}
+function connectKey(pk) {
+  const acct = createAccount(pk);
+  setWallet("key", acct.address, createClient({ chain: studionet, account: acct }));
+}
+function connectTest() {
+  let pk = ""; try { pk = sessionStorage.getItem(TEST_SLOT) || ""; } catch {}
+  if (!/^0x[0-9a-f]{64}$/.test(pk)) {
+    const b = new Uint8Array(32); crypto.getRandomValues(b);
+    pk = "0x" + Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+    try { sessionStorage.setItem(TEST_SLOT, pk); } catch {}
+  }
+  const acct = createAccount(pk);
+  setWallet("test", acct.address, createClient({ chain: studionet, account: acct }));
+}
+function disconnect() {
+  try { sessionStorage.removeItem(TEST_SLOT); } catch {}
+  setWallet(null, null, null);
+  toast({ tone: "info", title: "Wallet disconnected" });
+}
+if (window.ethereum?.on) {
+  window.ethereum.on("accountsChanged", (a) => { if (state.wallet.mode === "injected") { if (a?.length) setWallet("injected", a[0], createClient({ chain: studionet, account: a[0] })); else disconnect(); } });
+  window.ethereum.on("chainChanged", () => checkNetwork());
+}
+function openWalletDialog() {
+  const w = state.wallet;
+  const keyField = field({ label: "Private key", type: "password", placeholder: "0x + 64 hex characters", hint: "Kept in this tab's memory only. Use testnet keys.", autocomplete: "off",
+    validate: (v) => (/^(0x)?[0-9a-fA-F]{64}$/.test(v) ? "" : "A private key is 64 hex characters, optionally starting with 0x.") });
+  let ctl;
+  const errBox = h("div");
+  const fail = (e) => { const n = normalizeError(e); errBox.replaceChildren(banner("neg", "alert", n.kind === "unknown" ? "Couldn't connect" : n.title, n.kind === "unknown" ? n.body : n.body)); };
+  const options = [
+    h("div", { class: "option" }, h("span", { class: "ic" }, svgIcon("wallet")), h("div", { class: "body" },
+      h("b", { text: "Browser wallet" }),
+      h("span", { class: "subtle", text: window.ethereum ? "MetaMask or another injected wallet. You'll be asked to switch to GenLayer Studio if needed." : "No browser wallet detected here. Open this page inside your wallet app's browser to use it." }),
+      button("Connect browser wallet", { variant: "primary", key: "connect-injected", onclick: async (e) => {
+        if (!window.ethereum) return fail(new AppError("nowallet", "No browser wallet found", "Open this page in your wallet app's browser, or use a Studio account key."));
+        const b = e.currentTarget; setButtonBusy(b, true);
+        try { await connectInjected(); ctl.close(); toast({ tone: "pos", title: "Wallet connected", body: shortAddr(state.wallet.address) }); }
+        catch (err) { if (err?.code === 4001) fail(new AppError("rejected", "Connection cancelled", "You declined the request in your wallet.")); else fail(err); }
+        finally { setButtonBusy(b, false); }
+      } }))),
+    h("div", { class: "option" }, h("span", { class: "ic" }, svgIcon("key")), h("div", { class: "body" },
+      h("b", { text: "GenLayer Studio account" }), keyField.el,
+      button("Use this account", { variant: "secondary", onclick: () => {
+        if (!keyField.check()) return;
+        let pk = keyField.value.trim(); if (!pk.startsWith("0x")) pk = "0x" + pk;
+        try { connectKey(pk); ctl.close(); toast({ tone: "pos", title: "Studio account connected", body: shortAddr(state.wallet.address) }); } catch (err) { fail(err); }
+      } }))),
+    h("div", { class: "option" }, h("span", { class: "ic" }, svgIcon("shield")), h("div", { class: "body" },
+      h("b", { text: "Throwaway test account" }),
+      h("span", { class: "subtle", text: "A fresh address that lives in this tab. Good for reading and for trying a flow; it starts with no GEN." }),
+      button("Start test account", { variant: "secondary", onclick: () => { connectTest(); ctl.close(); toast({ tone: "pos", title: "Test account ready", body: shortAddr(state.wallet.address) }); } }))),
+  ];
+  const connected = w.address ? h("div", { class: "stack-sm" },
+    h("div", { class: "row-between" }, h("span", { class: "subtle", text: { injected: "Browser wallet", key: "Studio account", test: "Test account" }[w.mode] }), chip("Connected", "pos")),
+    addrView(w.address, { full: true }),
+    button("Disconnect", { variant: "ghost", onclick: () => { disconnect(); ctl.close(); } })) : null;
+  ctl = openDialog({ title: w.address ? "Your wallet" : "Connect a wallet", body: [connected, connected ? h("hr", { class: "divider" }) : null, errBox, ...options] });
+}
+function walletButton() {
+  const w = state.wallet;
+  return w.address
+    ? button(shortAddr(w.address), { variant: "secondary", small: true, icon: w.wrongNetwork ? "alert" : "wallet", onclick: openWalletDialog })
+    : button("Connect", { variant: "primary", small: true, icon: "wallet", onclick: openWalletDialog });
+}
+
+/* =====================================================================
+   Transactions: preview, sign, submitted, accepted, finalized
+   ===================================================================== */
+const busy = new Set();
+function setBusy(key, on) {
+  on ? busy.add(key) : busy.delete(key);
+  document.querySelectorAll(`[data-busy-key="${CSS.escape(key)}"]`).forEach((b) => setButtonBusy(b, on));
+}
+function receiptResult(r) {
+  let v = r?.consensus_data?.leader_receipt?.[0]?.result?.payload?.readable;
+  for (let i = 0; i < 3 && typeof v === "string"; i++) {
+    const t = v.trim(); if (!/^[\[{"]/.test(t)) break;
+    try { v = JSON.parse(t); } catch { break; }
+  }
+  return v ?? null;
+}
+function receiptError(r) {
+  const lr = r?.consensus_data?.leader_receipt?.[0];
+  if (lr?.execution_result !== "ERROR") return null;
+  const raw = [lr?.genvm_result?.stderr, lr?.result?.payload?.readable, lr?.result?.raw, JSON.stringify(lr?.result || "")].filter(Boolean).join(" ");
+  const m = raw.match(/UserError[:(]\s*['"]?([^'"\n]{3,260})/) || raw.match(/rollback[^:]*:\s*([^"\n]{3,260})/i);
+  return m ? m[1].trim() : "The contract rejected this transaction.";
+}
+async function walletBalance() {
+  try {
+    const c = state.wallet.client;
+    if (c?.getBalance) return BigInt(await c.getBalance({ address: state.wallet.address }));
+  } catch {}
+  return null;
+}
+function txErrorText(e) {
+  const msg = String(e?.shortMessage || e?.message || e || "");
+  if (e?.code === 4001 || /user (rejected|denied)|rejected the request|denied transaction/i.test(msg)) return ["Cancelled in your wallet", "Nothing was sent."];
+  if (/insufficient funds|insufficient balance/i.test(msg)) return ["Not enough GEN", "Your wallet doesn't hold enough GEN for this transaction."];
+  if (/fetch|network|timeout|ECONN|Load failed/i.test(msg)) return ["Network problem", "GenLayer Studio couldn't be reached. Check your connection; the transaction may still be processing."];
+  if (/chain|network.*mismatch/i.test(msg)) return ["Wrong network", "Switch your wallet to GenLayer Studio and try again."];
+  return ["Transaction failed", msg.slice(0, 240)];
+}
+async function transact({ key, title, fn, args, value = 0n, rows, intro, confirmLabel, danger, onAccepted, successText }) {
+  if (busy.has(key)) return null;
+  if (!state.wallet.client) { toast({ tone: "warn", title: "Connect a wallet first", body: "You need a wallet to sign this action." }); openWalletDialog(); return null; }
+  if (contractMissing()) { toast({ tone: "warn", title: "No contract address set" }); return null; }
+  const previewRows = [...rows, ["Signed by", shortAddr(state.wallet.address)]];
+  if (value > 0n) previewRows.push(["You send", gen(value)]);
+  const ok = await confirmTx({ title, intro, rows: previewRows, confirmLabel: confirmLabel || "Sign and send", danger });
+  if (!ok) return null;
+  setBusy(key, true);
+  const t = txTracker(title);
+  try {
+    if (value > 0n) {
+      const bal = await walletBalance();
+      if (bal !== null && bal < value) { t.fail("Not enough GEN", `This needs ${gen(value)}; your wallet holds ${gen(bal)}.`); return null; }
+    }
+    if (state.wallet.mode === "injected") {
+      await checkNetwork();
+      if (state.wallet.wrongNetwork) { t.step("sign", "Switching your wallet to GenLayer Studio…"); await switchNetwork(); }
+    }
+    t.step("sign", "Check your wallet for the request.");
+    const hash = await state.wallet.client.writeContract({ address: CONTRACT, functionName: fn, args, value });
+    t.step("submitted", `Transaction ${shortAddr(hash)}. Validators are running it; a ruling can take a few minutes.`);
+    let receipt = null;
+    try { receipt = await state.wallet.client.waitForTransactionReceipt({ hash, status: "ACCEPTED", interval: 3000, retries: 120 }); } catch { receipt = null; }
+    if (receipt) {
+      const err = receiptError(receipt);
+      if (err) { t.fail(`${title} was rejected`, err); return null; }
+      const result = receiptResult(receipt);
+      if (result && typeof result === "object" && result.rejected) {
+        t.fail(`${title} was rejected`, `${result.rejected}. The ${gen(result.refunded_wei)} you sent is in your withdrawable balance on the Account page.`);
+        onAccepted && onAccepted(null);
+        return null;
+      }
+      t.step("finalized", "Accepted. The page shows the new state; waiting for finality.");
+      onAccepted && onAccepted(result);
+    }
+    const fin = await state.wallet.client.waitForTransactionReceipt({ hash, status: "FINALIZED", interval: 4000, retries: 150 });
+    const err = receiptError(fin);
+    if (err) { t.fail(`${title} was rejected`, err); return null; }
+    const result = receiptResult(fin);
+    if (result && typeof result === "object" && result.rejected) {
+      t.fail(`${title} was rejected`, `${result.rejected}. The ${gen(result.refunded_wei)} you sent is in your withdrawable balance on the Account page.`);
+      return null;
+    }
+    t.done(successText || "Done.");
+    if (!receipt) onAccepted && onAccepted(result);
+    return result ?? true;
+  } catch (e) {
+    const [hd, body] = txErrorText(e);
+    t.fail(hd, body);
+    return null;
+  } finally { setBusy(key, false); }
+}
+
+/* =====================================================================
+   Chrome: nav, wallet slots, banners
+   ===================================================================== */
+const NAV = [["cases", "#/", "Cases", "cases"], ["charters", "#/charters", "Charters", "charter"], ["new", "#/new", "New charter", "plus"], ["account", "#/account", "Account", "user"]];
+let currentTab = "cases";
+function renderChrome() {
+  const mk = (compact) => NAV.map(([k, href, label, icon]) => h("li", {}, h("a", { class: "tab", href, "aria-current": k === currentTab ? "page" : undefined }, svgIcon(icon), h("span", { text: compact && k === "new" ? "New" : label }))));
+  $("tabNav").replaceChildren(...mk(true));
+  $("sideNav").replaceChildren(...mk(false));
+  $("walletSlotTop").replaceChildren(walletButton());
+  const w = state.wallet;
+  $("walletSlotSide").replaceChildren(w.address
+    ? h("div", { class: "panel stack-sm", style: "padding:14px" }, h("div", { class: "row-between" }, h("span", { class: "subtle", text: "Wallet" }), chip(w.wrongNetwork ? "Wrong network" : "Connected", w.wrongNetwork ? "warn" : "pos")), addrView(w.address), button("Manage", { variant: "ghost", small: true, onclick: openWalletDialog }))
+    : button("Connect wallet", { variant: "primary", icon: "wallet", block: true, onclick: openWalletDialog }));
+  $("contractSide").replaceChildren(contractMissing() ? h("span", { text: "No contract set" }) : h("span", { title: CONTRACT }, "Contract ", h("b", { text: shortAddr(CONTRACT) })));
+  renderBanners();
+}
+function renderBanners() {
+  const out = [];
+  if (contractMissing()) out.push(banner("warn", "link", "Connect PolicyCourt to a deployed contract", "Paste the address of your PolicyCourt contract on GenLayer Studio. It's remembered in this browser.", button("Set contract address", { variant: "primary", small: true, onclick: openContractDialog })));
+  if (state.wallet.wrongNetwork) out.push(banner("warn", "alert", "Your wallet is on another network", "Transactions need GenLayer Studio.", button("Switch network", { variant: "primary", small: true, onclick: async () => { try { await switchNetwork(); toast({ tone: "pos", title: "Switched to GenLayer Studio" }); } catch (e) { toast({ tone: "neg", title: "Network not switched", body: txErrorText(e)[1] }); } } })));
+  $("banners").replaceChildren(...out);
+}
+function openContractDialog() {
+  const f = field({ label: "Contract address", required: true, value: contractMissing() ? "" : CONTRACT, placeholder: "0x…", validate: addrRule, hint: "The address shown in GenLayer Studio after deploying contract.py." });
+  const ctl = openDialog({ title: "Contract address", body: [f.el], actions: [
+    button("Cancel", { variant: "secondary", onclick: () => ctl.close() }),
+    button("Save address", { onclick: () => { if (!f.check()) return; ctl.close(); setContract(f.value.trim()); toast({ tone: "pos", title: "Contract address saved" }); } })] });
+}
+
+/* =====================================================================
+   Views
+   ===================================================================== */
+let routeToken = 0;
+const viewEl = () => $("view");
+function render(token, ...nodes) { if (token === routeToken) viewEl().replaceChildren(...nodes); }
+const setupState = () => h("div", { class: "panel" }, emptyState({ icon: "link", title: "No contract connected", body: "Set the deployed PolicyCourt address to load charters and cases.", action: button("Set contract address", { onclick: openContractDialog }) }));
+const pageHead = (title, lede, extra) => h("header", { class: "page-head" }, h("div", { class: "row-between wrap" }, h("h1", { text: title }), extra || null), lede ? h("p", { class: "lede", text: lede }) : null);
+const crumb = (href, text) => h("a", { class: "crumb", href }, svgIcon("back"), text);
+
+/* ---------- Cases ---------- */
+let caseFilter = "";
+const FILTERS = [["", "All"], ["filed", "Awaiting response"], ["ruled", "Appeal open"], ["remanded", "With steward"], ["round2_filed", "Second appeal"], ["final", "Settled"]];
+async function viewCases(tok) {
+  const statsBox = h("div", { class: "statstrip", "aria-label": "Totals" }, ...["Open cases", "Settled", "Decisions", "Charters"].map((l) => h("div", { class: "stat" }, h("b", {}, h("span", { class: "skel", style: "display:inline-block;width:36px;height:22px" })), h("span", { text: l }))));
+  const listBox = h("div", {}, skeleton(5));
+  const filters = h("div", { class: "segmented", role: "group", "aria-label": "Filter cases" }, FILTERS.map(([v, l]) =>
+    h("button", { class: "seg", type: "button", "aria-pressed": String(v === caseFilter), onclick: () => { caseFilter = v; route(); } }, l)));
+  render(tok,
+    pageHead("Cases", "Members appeal decisions their community stewards made. Each appeal is judged against the community's written charter, and every ruling comes with its reasons."),
+    h("details", { class: "how" }, h("summary", {}, "How an appeal works", svgIcon("chevron")),
+      h("ol", {},
+        h("li", {}, h("b", { text: "Charter" }), "A steward registers the community's rules. They can't be edited later."),
+        h("li", {}, h("b", { text: "Decision" }), "The steward records a decision against a member and cites the rules it rests on."),
+        h("li", {}, h("b", { text: "Appeal" }), "The member stakes GEN and explains why the decision is wrong. The steward can reply."),
+        h("li", {}, h("b", { text: "Ruling" }), "Validators rule: upheld, overturned or sent back. The stake is returned or split by the result."))),
+    statsBox, filters, h("div", { class: "panel-flush" }, listBox));
+  if (contractMissing()) return render(tok, setupState());
+  const [stats] = await Promise.allSettled([view("get_stats"), loadCharterNames()]);
+  if (tok !== routeToken) return;
+  if (stats.status === "fulfilled") {
+    const s = stats.value;
+    [s.open, s.final, s.decisions, s.charters].forEach((n, i) => statsBox.children[i].firstChild.replaceChildren(String(n)));
+  } else statsBox.replaceWith(errorState(stats.reason, route));
+  await loadCaseList(listBox, tok, 0, []);
+}
+async function loadCaseList(box, tok, offset, rows) {
+  try {
+    const page = await view("list_appeals", [caseFilter, offset, 20]);
+    if (tok !== routeToken) return;
+    rows = rows.concat(page.rows);
+    if (!rows.length) {
+      box.replaceChildren(emptyState({ icon: "cases", title: caseFilter ? "No cases with this status" : "No cases yet",
+        body: caseFilter ? "Try another filter." : "Cases appear here when a member appeals a recorded decision. Start by registering a charter.",
+        action: caseFilter ? button("Show all cases", { variant: "secondary", onclick: () => { caseFilter = ""; route(); } }) : h("a", { class: "btn btn-primary", href: "#/new" }, svgIcon("plus"), "Register a charter") }));
+      return;
+    }
+    const list = h("ul", { class: "list" }, rows.map(caseRow));
+    const more = page.more ? h("div", { style: "padding:12px 16px;border-top:1px solid var(--line)" }, button("Load more cases", { variant: "secondary", block: true, onclick: (e) => { setButtonBusy(e.currentTarget, true); loadCaseList(box, tok, rows.length, rows); } })) : null;
+    box.replaceChildren(list, more || "");
+  } catch (e) { if (tok === routeToken) box.replaceChildren(errorState(e, route)); }
+}
+function caseRow(a) {
+  const [label, tone] = a.status === "final" ? (FINAL[a.final_outcome] || [a.final_outcome, ""]) : (STATUS[a.status] || [a.status, ""]);
+  const mine = state.wallet.address && (same(a.appellant, state.wallet.address) || same(a.steward, state.wallet.address));
+  return h("li", {}, h("a", { class: "item", href: `#/case/${a.appeal_id}` },
+    h("span", { class: "title" }, `Case ${a.appeal_id}`, mine ? h("span", { class: "you", text: same(a.appellant, state.wallet.address) ? "Your appeal" : "Your charter" }) : null),
+    chip(label, tone),
+    h("span", { class: "meta" },
+      h("span", { text: charterNames.get(a.charter_id) || `Charter ${a.charter_id}` }),
+      h("span", { text: `Decision ${a.decision_id}` }),
+      h("span", { class: "num", text: `Stake ${gen(a.stake)}` }),
+      a.round > 1 ? h("span", { text: "Round 2" }) : null,
+      h("span", {}, "Filed ", timeEl(a.filed_at)))));
+}
+
+/* ---------- Charters ---------- */
+async function viewCharters(tok) {
+  const box = h("div", {}, skeleton(4));
+  render(tok, pageHead("Charters", "Each charter is a community's written rules. Decisions under a charter can be appealed by the member affected.",
+    h("a", { class: "btn btn-primary btn-sm", href: "#/new" }, svgIcon("plus"), "New charter")), h("div", { class: "panel-flush" }, box));
+  if (contractMissing()) return render(tok, setupState());
+  try {
+    const page = await view("list_charters", [0, 30]);
+    if (tok !== routeToken) return;
+    if (!page.rows.length) return box.replaceChildren(emptyState({ icon: "charter", title: "No charters yet", body: "Register your community's rules to start recording decisions.", action: h("a", { class: "btn btn-primary", href: "#/new" }, svgIcon("plus"), "Register a charter") }));
+    box.replaceChildren(h("ul", { class: "list" }, page.rows.map((c) => h("li", {}, h("a", { class: "item", href: `#/charter/${c.charter_id}` },
+      h("span", { class: "title break" }, c.name, same(c.steward, state.wallet.address) ? h("span", { class: "you", text: "Your charter" }) : null),
+      chip(`Min stake ${c.min_stake_gen} GEN`, "", true),
+      h("span", { class: "meta" }, h("span", { text: plural(c.article_count, "article", "articles") }), h("span", { text: plural(c.decision_count, "decision", "decisions") }), h("span", { text: `Steward ${shortAddr(c.steward)}` })))))));
+  } catch (e) { if (tok === routeToken) box.replaceChildren(errorState(e, route)); }
+}
+
+async function viewCharter(tok, id) {
+  render(tok, crumb("#/charters", "Charters"), skeleton(6));
+  try {
+    const [c, stats, decisions] = await Promise.all([view("get_charter", [id]), view("get_charter_stats", [id]), view("list_decisions", [id, 0, 30])]);
+    if (tok !== routeToken) return;
+    const isSteward = same(c.steward, state.wallet.address);
+    const byStatus = Object.entries(stats.decisions_by_status);
+    const formSlot = h("div");
+    render(tok,
+      crumb("#/charters", "Charters"),
+      pageHead(c.name, null, isSteward ? chip("You are the steward", "seal", true) : null),
+      h("div", { class: "stack-lg" },
+        h("section", { class: "panel", "aria-labelledby": "rulesH" },
+          h("h2", { id: "rulesH", text: "Appeal rules" }),
+          h("dl", { class: "kv" },
+            h("dt", { text: "Steward" }), h("dd", {}, addrView(c.steward)),
+            h("dt", { text: "Minimum stake" }), h("dd", { class: "num", text: `${c.min_stake_gen} GEN` }),
+            h("dt", { text: "Steward reply window" }), h("dd", { text: windowText(c.response_window_secs) }),
+            h("dt", { text: "Appeal window" }), h("dd", { text: `${windowText(c.appeal_window_secs)} after a decision or ruling` }),
+            h("dt", { text: "If upheld" }), h("dd", { text: `Member gets back ${pctOf(c.upheld_refund_bps)} of the stake` }),
+            h("dt", { text: "If sent back and reaffirmed" }), h("dd", { text: `Member gets back ${pctOf(c.remand_refund_bps)}` }),
+            h("dt", { text: "If overturned" }), h("dd", { text: "Member gets back the whole stake" }),
+            h("dt", { text: "Registered" }), h("dd", {}, timeEl(c.created_at)))),
+        h("section", { "aria-labelledby": "artH" },
+          h("h2", { id: "artH", class: "section-title", style: "margin-top:0", text: "Articles" }),
+          h("ol", { class: "articles" }, c.articles.map((t, i) => h("li", { class: "article" }, h("span", { class: "n", text: `Art. ${i + 1}` }), h("span", { class: "break", text: t }))))),
+        h("section", { "aria-labelledby": "decH" },
+          h("div", { class: "row-between wrap", style: "margin-bottom:12px" },
+            h("h2", { id: "decH", text: "Decisions" }),
+            isSteward ? button("Record a decision", { icon: "plus", small: true, onclick: (e) => { formSlot.replaceChildren(recordDecisionForm(c)); e.currentTarget.hidden = true; formSlot.querySelector("input")?.focus(); } }) : null),
+          formSlot,
+          byStatus.length ? h("p", { class: "subtle", style: "margin-bottom:10px", text: byStatus.map(([k, v]) => `${v} ${(DECISION_STATUS[k] || [k])[0].toLowerCase()}`).join(", ") }) : null,
+          decisions.rows.length
+            ? h("div", { class: "panel-flush" }, h("ul", { class: "list" }, decisions.rows.map((d) => h("li", {}, h("a", { class: "item", href: `#/decision/${d.decision_id}` },
+                h("span", { class: "title" }, `${KINDS[d.kind] || d.kind}: ${shortAddr(d.subject)}`, same(d.subject, state.wallet.address) ? h("span", { class: "you", text: "About you" }) : null),
+                chip(...(DECISION_STATUS[d.status] || [d.status, ""])),
+                h("span", { class: "lead break", text: d.summary }),
+                h("span", { class: "meta" }, h("span", { text: `Decision ${d.decision_id}` }), h("span", {}, "Recorded ", timeEl(d.recorded_at))))))))
+            : h("div", { class: "panel" }, emptyState({ icon: "file", title: "No decisions yet", body: isSteward ? "Record a decision when you act against a member. They'll be able to appeal it." : "Only the steward can record decisions under this charter." })))));
+  } catch (e) { render(tok, crumb("#/charters", "Charters"), errorState(e, route)); }
+}
+function recordDecisionForm(c) {
+  const count = c.articles.length;
+  const subject = field({ label: "Member affected", required: true, placeholder: "0x…", validate: (v) => addrRule(v) || (same(v, c.steward) ? "A steward can't record a decision against themselves." : ""), hint: "The wallet address of the member this decision is about." });
+  const kind = field({ label: "Kind of decision", options: Object.entries(KINDS), value: "BAN" });
+  const summary = field({ label: "What was decided", required: true, multiline: true, rows: 3, max: LIMITS.summary[1], placeholder: "Banned for repeated spam in the general channel", validate: lenRule(...LIMITS.summary, "The summary") });
+  const rationale = field({ label: "Why", required: true, multiline: true, max: LIMITS.rationale[1], placeholder: "What the member did, when, and how it breaks the rules", validate: lenRule(...LIMITS.rationale, "The rationale") });
+  const cited = field({ label: "Articles relied on", required: true, placeholder: count > 1 ? "e.g. 2 or 1,3" : "1", inputmode: "numeric", hint: `Numbers from 1 to ${count}, separated by commas.`,
+    validate: (v) => { const r = parseRefs(v, count); return r && r.length ? "" : `Use article numbers from 1 to ${count}, like 2 or 1,3.`; } });
+  const fields = [subject, kind, summary, rationale, cited];
+  const form = h("form", { class: "panel form", style: "margin-bottom:16px", novalidate: true, "aria-label": "Record a decision" },
+    h("h3", { text: "Record a decision" }),
+    h("p", { class: "muted small", text: "The member can appeal within " + windowText(c.appeal_window_secs) + ". Be specific: the panel reads exactly what you write here." }),
+    h("div", { class: "grid-2" }, subject.el, kind.el), summary.el, rationale.el, cited.el,
+    h("div", { class: "form-actions" }, button("Record decision", { type: "submit", key: `decide-${c.charter_id}` })));
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!checkAll(fields)) return;
+    const refs = parseRefs(cited.value, count);
+    await transact({ key: `decide-${c.charter_id}`, title: "Record decision", fn: "record_decision",
+      args: [c.charter_id, subject.value.trim(), kind.value, clean(summary.value), clean(rationale.value), refs.join(",")],
+      rows: [["Charter", c.name], ["Member", shortAddr(subject.value.trim())], ["Kind", KINDS[kind.value]], ["Articles", refs.map((n) => "Art. " + n).join(", ")]],
+      confirmLabel: "Sign and record", successText: "The decision is on record.",
+      onAccepted: (r) => { if (r && r.decision_id !== undefined) location.hash = `#/decision/${r.decision_id}`; else route(); } });
+  });
+  return form;
+}
+
+/* ---------- Decision ---------- */
+async function viewDecision(tok, id) {
+  render(tok, crumb("#/charters", "Charters"), skeleton(6));
+  try {
+    const d = await view("get_decision", [id]);
+    const [c, acts] = await Promise.all([view("get_charter", [d.charter_id]), state.wallet.address ? view("get_decision_actions", [id, state.wallet.address]) : null]);
+    if (tok !== routeToken) return;
+    const canAppeal = acts && acts.actions.includes("file_appeal");
+    let side;
+    if (!state.wallet.address) side = h("div", { class: "panel stack" }, h("h2", { text: "Appeal" }), h("p", { class: "muted", text: "Only the member this decision is about can appeal it. Connect that wallet to file an appeal." }), button("Connect wallet", { icon: "wallet", onclick: openWalletDialog }));
+    else if (canAppeal) side = appealForm(d, c);
+    else if (d.appeal_id !== "") side = h("div", { class: "panel stack" }, h("h2", { text: "Appeal" }), h("p", { class: "muted", text: "This decision has an appeal on record." }), h("a", { class: "btn btn-primary", href: `#/case/${d.appeal_id}` }, `Open case ${d.appeal_id}`));
+    else side = h("div", { class: "panel stack" }, h("h2", { text: "Appeal" }), h("p", { class: "muted", text: acts.role === "subject" ? "The appeal window for this decision has closed." : "Only the member this decision is about can appeal it." }));
+    render(tok,
+      crumb(`#/charter/${c.charter_id}`, c.name),
+      h("div", { class: "case" },
+        h("header", { class: "case-head" },
+          h("div", { class: "case-title" }, h("h1", { text: `${KINDS[d.kind] || d.kind}, decision ${d.decision_id}` }), chip(...(DECISION_STATUS[d.status] || [d.status, ""]))),
+          h("div", { class: "facts" }, h("span", {}, "Member ", addrView(d.subject)), h("span", {}, "Recorded ", timeEl(d.recorded_at)))),
+        h("div", { class: "case-aside" },
+          d.status === "in_force" ? h("div", { class: "deadline" }, svgIcon("clock"), countdown(d.filing_deadline, "Appeals close in", "Appeal window closed")) : null,
+          side),
+        h("div", { class: "case-body" },
+          h("section", { class: "panel stack" }, h("h2", { text: "The decision" }),
+            h("p", { class: "reason break", text: d.summary }),
+            h("div", { class: "stack-sm" }, h("h3", { class: "small", style: "margin:0", text: "Steward's reasons" }), h("p", { class: "break", text: d.rationale }))),
+          h("section", { "aria-labelledby": "dArt" }, h("h2", { id: "dArt", class: "section-title", style: "margin-top:0", text: "Charter articles" }),
+            h("p", { class: "subtle", style: "margin-bottom:10px", text: "Highlighted articles are the ones the steward relied on." }),
+            h("ol", { class: "articles" }, c.articles.map((t, i) => h("li", { class: `article${d.cited_articles.includes(i + 1) ? " hit" : ""}` },
+              h("span", { class: "n", text: `Art. ${i + 1}` }), h("span", { class: "break" }, t, d.cited_articles.includes(i + 1) ? h("span", { class: "sr", text: " (relied on)" }) : null))))))));
+  } catch (e) { render(tok, crumb("#/charters", "Charters"), errorState(e, route)); }
+}
+function appealForm(d, c) {
+  const min = BigInt(c.min_stake);
+  const preview = h("div", { class: "preview", "aria-live": "polite" });
+  const stake = field({ label: "Stake (GEN)", required: true, value: String(c.min_stake_gen), inputmode: "decimal", hint: `At least ${c.min_stake_gen} GEN.`,
+    validate: (v) => { const w = genToWei(v); if (w === null) return "Enter an amount like 5 or 2.5."; if (w < min) return `The minimum stake for this charter is ${c.min_stake_gen} GEN.`; return ""; },
+    onInput: () => paint() });
+  const grounds = field({ label: "Why the decision is wrong", required: true, multiline: true, max: LIMITS.grounds[1], placeholder: "Point to the articles and facts. For example: Article 3 requires a written warning, which I never received.", validate: lenRule(...LIMITS.grounds, "Your grounds") });
+  const evidence = field({ label: "Evidence", multiline: true, rows: 3, max: 800, placeholder: "What happened, with dates and where it can be checked", hint: "Optional. You can add more later.", validate: optLenRule(800) });
+  function paint() {
+    const w = genToWei(stake.value);
+    if (w === null || w < min) { preview.replaceChildren(h("span", { class: "subtle", text: "Enter a valid stake to see what you'd get back." })); return; }
+    preview.replaceChildren(h("h4", { text: `What happens to ${gen(w)}` }), h("ul", {},
+      h("li", {}, "Overturned: you get all of it back"),
+      h("li", {}, `Sent back, steward reaffirms: you get ${gen(shareWei(w, c.remand_refund_bps))} back`),
+      h("li", {}, `Upheld: you get ${gen(shareWei(w, c.upheld_refund_bps))} back`)));
+  }
+  paint();
+  const form = h("form", { class: "panel form", novalidate: true, "aria-labelledby": "apH" },
+    h("div", { class: "role" }, h("span", { class: "badge" }, svgIcon("user")), "This decision is about you"),
+    h("h2", { id: "apH", text: "Appeal this decision" }),
+    stake.el, preview, grounds.el, evidence.el,
+    button("Stake and file appeal", { type: "submit", key: `appeal-${d.decision_id}`, block: true }));
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!checkAll([stake, grounds, evidence])) return;
+    const w = genToWei(stake.value);
+    await transact({ key: `appeal-${d.decision_id}`, title: "File appeal", fn: "file_appeal", value: w,
+      args: [d.decision_id, clean(grounds.value), clean(evidence.value)],
+      rows: [["Decision", `${KINDS[d.kind]} ${d.decision_id}`], ["Charter", c.name], ["Stake", gen(w)]],
+      intro: "Your stake is held by the contract until the case is settled.", confirmLabel: "Sign and file",
+      successText: "Your appeal is filed. The steward can now reply.",
+      onAccepted: (r) => { if (r && r.appeal_id !== undefined) location.hash = `#/case/${r.appeal_id}`; else route(); } });
+  });
+  return form;
+}
+
+/* ---------- Case ---------- */
+async function viewCase(tok, id) {
+  render(tok, crumb("#/", "Cases"), skeleton(7));
+  try {
+    const a = await view("get_appeal", [id]);
+    const [d, c, v, acts] = await Promise.all([view("get_decision", [a.decision_id]), view("get_charter", [a.charter_id]), view("get_verdict", [id]),
+      state.wallet.address ? view("get_appeal_actions", [id, state.wallet.address]) : null]);
+    if (tok !== routeToken) return;
+    const [label, tone] = a.status === "final" ? (FINAL[a.final_outcome] || [a.final_outcome, ""]) : (STATUS[a.status] || [a.status, ""]);
+    const stampKey = `policycourt.seen.${CONTRACT}.${a.appeal_id}.${a.verdict?.ruled_at || ""}`;
+    let fresh = false;
+    try { fresh = !!a.verdict && !sessionStorage.getItem(stampKey); if (fresh) sessionStorage.setItem(stampKey, "1"); } catch {}
+    render(tok,
+      crumb("#/", "Cases"),
+      h("div", { class: "case" },
+        h("header", { class: "case-head" },
+          h("div", { class: "case-title" }, h("h1", { text: `Case ${a.appeal_id}` }), chip(label, tone), a.round > 1 ? chip("Round 2", "", true) : null),
+          h("div", { class: "facts" },
+            h("span", {}, h("b", { text: KINDS[d.kind] || d.kind }), " under ", h("a", { href: `#/charter/${c.charter_id}`, text: c.name })),
+            h("span", { class: "num" }, "Stake ", h("b", { text: gen(a.stake) })),
+            h("span", {}, "Filed ", timeEl(a.filed_at)))),
+        h("aside", { class: "case-aside", "aria-label": "Progress and actions" }, actionsPanel(a, c, d, acts), progressPanel(a)),
+        h("div", { class: "case-body" },
+          a.verdict ? verdictPanel(a, v, fresh) : null,
+          v.settlement ? settlementPanel(v) : null,
+          h("section", { class: "panel stack" },
+            h("div", { class: "row-between wrap" }, h("h2", { style: "margin:0", text: "The decision" }), h("a", { class: "crumb", href: `#/decision/${d.decision_id}` }, "View decision")),
+            h("p", { class: "reason break", text: d.summary }), h("p", { class: "muted break", text: d.rationale }),
+            h("p", { class: "subtle", text: `Relies on ${d.cited_articles.map((n) => "Article " + n).join(", ")}.` })),
+          caseFilePanel(a),
+          h("section", { class: "panel" }, h("h2", { text: "Timeline" }), timeline(a)))));
+  } catch (e) { render(tok, crumb("#/", "Cases"), errorState(e, route)); }
+}
+function progressPanel(a) {
+  const now = Date.now(), past = (iso) => iso && new Date(iso).getTime() < now;
+  const r1 = a.round1;
+  const steps = [];
+  steps.push(["done", "Appeal filed", when(a.filed_at)]);
+  const respondedR1 = a.history.some((x) => x.event === "responded");
+  if (a.status === "filed") steps.push([respondedR1 ? "done" : "now", "Steward's reply", respondedR1 ? "Reply received" : null, respondedR1 ? null : a.response_deadline]);
+  else steps.push(["done", "Steward's reply", respondedR1 ? "Reply received" : a.history.some((x) => x.event === "conceded") ? "Conceded" : "No reply"]);
+  steps.push([r1 ? "done" : (a.status === "filed" ? "now-soft" : "done"), "Panel ruling", r1 ? RULING[r1.outcome]?.short : (a.status === "filed" ? "After the reply window" : "Not needed")]);
+  if (r1?.outcome === "REMANDED") {
+    if (a.review) steps.push(["done", "Steward review", a.review.action === "REVERSE" ? "Reversed" : "Reaffirmed"]);
+    else if (a.status === "remanded" && !past(a.review_deadline)) steps.push(["now", "Steward review", null, a.review_deadline]);
+    else steps.push(["done", "Steward review", "No review"]);
+  }
+  if (a.round >= 2) {
+    const done2 = a.status === "final" || a.status === "void";
+    steps.push([done2 ? "done" : "now", "Second appeal ruling", done2 ? (a.verdict?.round === 2 ? RULING[a.verdict.outcome]?.short : "Not ruled") : null, done2 ? null : a.response_deadline]);
+  } else if ((a.status === "ruled" || (a.status === "remanded" && (a.review || past(a.review_deadline))))) {
+    steps.push(["now", "Accept or appeal again", null, a.appeal_deadline]);
+  }
+  const settled = a.status === "final" || a.status === "void";
+  steps.push([settled ? "done" : "upcoming", "Settled", settled ? (FINAL[a.final_outcome]?.[0] || a.final_outcome) : null]);
+  const items = steps.map(([st, title, detail, deadline]) => {
+    const cls = st === "now-soft" ? "upcoming" : st;
+    return h("li", { class: cls, "aria-current": st === "now" ? "step" : undefined },
+      h("span", { class: "dot" }, cls === "done" ? svgIcon("check") : null),
+      h("div", {}, h("div", { class: "t", text: title }),
+        detail ? h("div", { class: "d", text: detail }) : null,
+        deadline ? h("div", { class: "d" }, countdown(deadline, "Closes in", "Window closed")) : null));
+  });
+  return h("section", { class: "panel", "aria-labelledby": "progH" }, h("h2", { id: "progH", text: "Progress" }), h("ol", { class: "tracker" }, items));
+}
+function actionsPanel(a, c, d, acts) {
+  const box = h("section", { class: "panel stack", "aria-labelledby": "actH" }, h("h2", { id: "actH", style: "margin:0", text: "What you can do" }));
+  if (!state.wallet.address) {
+    append(box, [h("p", { class: "muted small", text: "Connect a wallet to see the actions open to you. The appellant, the steward and anyone else see different options." }), button("Connect wallet", { icon: "wallet", onclick: openWalletDialog })]);
+    return box;
+  }
+  const roleText = { appellant: "You filed this appeal", steward: "You are the steward", observer: "You are viewing as an observer" }[acts.role];
+  append(box, h("div", { class: "role" }, h("span", { class: "badge" }, svgIcon(acts.role === "steward" ? "gavel" : acts.role === "appellant" ? "user" : "info")), roleText));
+  const list = acts.actions;
+  if (!list.length) {
+    append(box, h("p", { class: "muted small", text: waitingText(a, acts.role) }));
+    return box;
+  }
+  const order = ["rule_appeal", "respond_to_appeal", "review_remand", "appeal_again", "accept_ruling", "finalize_appeal", "add_evidence", "void_stalled_appeal", "concede_appeal"];
+  for (const name of order) if (list.includes(name)) box.append(actionBlock(name, a, c, d, acts));
+  return box;
+}
+function waitingText(a, role) {
+  if (a.status === "final") return "This case is settled. Any GEN owed to you is on the Account page.";
+  if (a.status === "void") return "This case was voided because no ruling arrived in time.";
+  if (a.status === "filed" || a.status === "round2_filed") return role === "observer" ? "The steward can reply until the window closes. After that, anyone can ask the panel to rule." : "Waiting for the steward's reply window to close.";
+  if (a.status === "remanded") return "The steward is reviewing the decision.";
+  if (a.status === "ruled") return "The appellant can accept the ruling or appeal again until the window closes.";
+  return "Nothing to do right now.";
+}
+function actionBlock(name, a, c, d, acts) {
+  const key = `${name}-${a.appeal_id}`;
+  const refresh = () => route();
+  const textAction = (title, desc, cta, fieldOpts, fn, extra = {}) => {
+    const f = field(fieldOpts);
+    const formEl = h("form", { class: "action-form", hidden: true, novalidate: true }, f.el,
+      h("div", { class: "form-actions" }, button("Cancel", { variant: "ghost", onclick: () => { formEl.hidden = true; opener.hidden = false; opener.focus(); } }), button(cta, { type: "submit", key, variant: extra.danger ? "danger" : "primary" })));
+    const opener = button(title, { variant: extra.primary ? "primary" : (extra.danger ? "danger" : "secondary"), block: true, onclick: () => { formEl.hidden = false; opener.hidden = true; f.input.focus(); } });
+    formEl.addEventListener("submit", async (e) => { e.preventDefault(); if (!checkAll([f])) return; await fn(clean(f.value)); });
+    return h("div", { class: "action" }, h("p", { text: desc }), opener, formEl);
+  };
+  const oneClick = (title, desc, fn, variant = "secondary") => h("div", { class: "action" }, h("p", { text: desc }), button(title, { variant, block: true, key, onclick: fn }));
+  switch (name) {
+    case "rule_appeal":
+      return oneClick("Ask the panel to rule", acts.role === "appellant" && new Date(a.response_deadline) > new Date()
+        ? "The steward has replied. You can ask for a ruling now instead of waiting for the reply window to close."
+        : "Validators read the charter, the decision and both sides, then publish a ruling with reasons. This can take a few minutes.",
+        () => transact({ key, title: "Request ruling", fn: "rule_appeal", args: [a.appeal_id], rows: [["Case", a.appeal_id], ["Round", String(a.round)]],
+          intro: a.round >= 2 ? "This is the final round. The ruling settles the case." : "If the decision is overturned, the stake is returned at once.", confirmLabel: "Sign and request", successText: "The ruling is published.", onAccepted: refresh }), "primary");
+    case "respond_to_appeal":
+      return textAction("Reply as steward", "Explain what the member did and how the charter applies. The panel reads your reply.", "Send reply",
+        { label: "Your reply", required: true, multiline: true, max: LIMITS.response[1], validate: lenRule(...LIMITS.response, "Your reply") },
+        (text) => transact({ key, title: "Reply to appeal", fn: "respond_to_appeal", args: [a.appeal_id, text], rows: [["Case", a.appeal_id], ["Reply", text.slice(0, 140) + (text.length > 140 ? "…" : "")]], successText: "Your reply is on record.", onAccepted: refresh }), { primary: true });
+    case "review_remand": {
+      const sel = field({ label: "Your decision", options: [["REAFFIRM", "Reaffirm the decision"], ["REVERSE", "Reverse the decision"]], value: "REAFFIRM" });
+      const note = field({ label: "Explanation", required: true, multiline: true, rows: 3, max: LIMITS.note[1], validate: lenRule(...LIMITS.note, "The explanation") });
+      const formEl = h("form", { class: "action-form", novalidate: true }, sel.el, note.el, button("Submit review", { type: "submit", key, block: true }));
+      formEl.addEventListener("submit", async (e) => {
+        e.preventDefault(); if (!checkAll([note])) return;
+        const reverse = sel.value === "REVERSE";
+        await transact({ key, title: reverse ? "Reverse decision" : "Reaffirm decision", fn: "review_remand", args: [a.appeal_id, sel.value, clean(note.value)],
+          rows: [["Case", a.appeal_id], ["Action", reverse ? "Reverse: the member gets the whole stake back" : `Reaffirm: the member can appeal again or keep ${pctOf(c.remand_refund_bps)}`]], successText: "Your review is on record.", onAccepted: refresh });
+      });
+      return h("div", { class: "action" }, h("p", { text: "The panel sent this decision back to you. Reverse it, or reaffirm it with an explanation. If you don't answer in time, the member gets the whole stake back." }), formEl);
+    }
+    case "appeal_again": {
+      const first = BigInt(a.stake);
+      const extra = field({ label: "Extra stake (GEN)", required: true, value: gen(first).replace(/ GEN$/, "").replace(/,/g, ""), inputmode: "decimal", hint: `At least ${gen(first)}. Your total stake at least doubles.`,
+        validate: (v) => { const w = genToWei(v); if (w === null) return "Enter an amount like 5 or 2.5."; if (w < first) return `Add at least ${gen(first)}.`; return ""; } });
+      const g = field({ label: "What the first ruling missed", required: true, multiline: true, max: LIMITS.grounds[1], validate: lenRule(...LIMITS.grounds, "Your grounds") });
+      const formEl = h("form", { class: "action-form", hidden: true, novalidate: true }, extra.el, g.el,
+        h("div", { class: "form-actions" }, button("Cancel", { variant: "ghost", onclick: () => { formEl.hidden = true; opener.hidden = false; } }), button("Stake and appeal", { type: "submit", key })));
+      const opener = button("Appeal again", { variant: "primary", block: true, onclick: () => { formEl.hidden = false; opener.hidden = true; extra.input.focus(); } });
+      formEl.addEventListener("submit", async (e) => {
+        e.preventDefault(); if (!checkAll([extra, g])) return;
+        const w = genToWei(extra.value);
+        await transact({ key, title: "File second appeal", fn: "appeal_again", value: w, args: [a.appeal_id, clean(g.value)],
+          rows: [["Case", a.appeal_id], ["Extra stake", gen(w)], ["Total at stake", gen(first + w)]], intro: "The second ruling is final: overturned returns everything, upheld returns " + pctOf(c.upheld_refund_bps) + " of the total.",
+          confirmLabel: "Sign and appeal", successText: "Your second appeal is filed.", onAccepted: refresh });
+      });
+      return h("div", { class: "action" }, h("p", { text: `Not satisfied? Add at least ${gen(first)} and a fresh panel reviews the case once more. That ruling is final.` }), opener, formEl);
+    }
+    case "accept_ruling": {
+      const isRemand = a.status === "remanded";
+      const back = isRemand ? (a.review ? shareWei(a.stake, c.remand_refund_bps) : BigInt(a.stake)) : shareWei(a.stake, c.upheld_refund_bps);
+      return oneClick("Accept ruling and settle", `Settle now instead of waiting for the window to close. You get ${gen(back)} back.`,
+        () => transact({ key, title: "Accept ruling", fn: "accept_ruling", args: [a.appeal_id], rows: [["Case", a.appeal_id], ["You get back", gen(back)]], confirmLabel: "Sign and settle", successText: "The case is settled.", onAccepted: refresh }));
+    }
+    case "finalize_appeal":
+      return oneClick("Settle the case", "The appeal window has closed. Anyone can settle the case so the stake is paid out.",
+        () => transact({ key, title: "Settle case", fn: "finalize_appeal", args: [a.appeal_id], rows: [["Case", a.appeal_id]], successText: "The case is settled.", onAccepted: refresh }), "primary");
+    case "add_evidence": {
+      const mine = a.evidence.filter((e) => e.by === acts.role).length;
+      return textAction("Add evidence", `Add facts the panel should weigh. ${LIMITS.evidencePerSide - mine} of ${LIMITS.evidencePerSide} items left for your side.`, "Add to case file",
+        { label: "Evidence", required: true, multiline: true, max: LIMITS.evidence[1], placeholder: "What happened, with dates and where it can be checked", validate: lenRule(...LIMITS.evidence, "Evidence") },
+        (text) => transact({ key, title: "Add evidence", fn: "add_evidence", args: [a.appeal_id, text], rows: [["Case", a.appeal_id], ["Evidence", text.slice(0, 140) + (text.length > 140 ? "…" : "")]], successText: "Added to the case file.", onAccepted: refresh }));
+    }
+    case "void_stalled_appeal":
+      return oneClick("Void stalled case", "No ruling arrived within 3 days of the reply deadline. Voiding returns the stake under the rules shown on the Account page.",
+        () => transact({ key, title: "Void stalled case", fn: "void_stalled_appeal", args: [a.appeal_id], rows: [["Case", a.appeal_id]], successText: "The case is voided.", onAccepted: refresh }));
+    case "concede_appeal":
+      return textAction("Concede the appeal", "If the member is right, concede. The decision is overturned and the member gets the whole stake back.", "Concede and overturn",
+        { label: "Why you concede", required: true, multiline: true, rows: 3, max: LIMITS.note[1], validate: lenRule(...LIMITS.note, "The explanation") },
+        (text) => transact({ key, title: "Concede appeal", fn: "concede_appeal", args: [a.appeal_id, text], danger: true, rows: [["Case", a.appeal_id], ["Result", "Decision overturned, full refund to the member"]], intro: "This can't be undone.", confirmLabel: "Sign and concede", successText: "The appeal is conceded.", onAccepted: refresh }), { danger: true });
+  }
+  return h("div");
+}
+function sealSvg(outcome, round, animate) {
+  const NS = "http://www.w3.org/2000/svg";
+  const s = (tag, attrs, text) => { const el = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v); if (text) el.textContent = text; return el; };
+  const color = { OVERTURNED: "var(--pos)", UPHELD: "var(--info)", REMANDED: "var(--warn)" }[outcome] || "var(--seal)";
+  const id = `sp${Math.random().toString(36).slice(2, 8)}`;
+  const svg = s("svg", { viewBox: "0 0 120 120", class: `seal${animate ? " stamp" : ""}`, role: "img", "aria-label": `Seal: ${RULING[outcome]?.title || outcome}, round ${round}` });
+  svg.append(
+    s("circle", { cx: 60, cy: 60, r: 56, fill: "none", stroke: color, "stroke-width": 2.5 }),
+    s("circle", { cx: 60, cy: 60, r: 49, fill: "none", stroke: color, "stroke-width": 1 }),
+    s("circle", { cx: 60, cy: 60, r: 35, fill: "none", stroke: color, "stroke-width": 1, "stroke-dasharray": "2 3" }),
+    s("path", { id, d: "M60,60 m-41,0 a41,41 0 1,1 82,0 a41,41 0 1,1 -82,0", fill: "none" }));
+  const txt = s("text", { fill: color, "font-size": 8.5, "font-weight": 700, "font-family": "inherit" });
+  const tp = s("textPath", { href: `#${id}`, startOffset: "0", textLength: 246, lengthAdjust: "spacing" }, `POLICYCOURT \u2605 ROUND ${round} RULING \u2605 ON RECORD \u2605`);
+  txt.append(tp);
+  const word = RULING[outcome]?.seal || outcome;
+  svg.append(txt, s("text", { x: 60, y: 64, "text-anchor": "middle", fill: color, "font-size": word.length > 8 ? 9.5 : 12.5, "font-weight": 800, "letter-spacing": 0.4, "font-family": "inherit" }, word));
+  return svg;
+}
+function verdictPanel(a, v, fresh) {
+  const vd = a.verdict;
+  const r = RULING[vd.outcome] || { title: vd.outcome, text: "" };
+  const byConcession = vd.source === "concession";
+  const lensRows = vd.lenses ? h("div", { class: "lenses" }, LENSES.map(([k, title, q]) => {
+    const l = vd.lenses[k]; const [fl, ft] = FINDING[l.finding] || [l.finding, ""];
+    return h("div", { class: "lens" }, h("div", { class: "q" }, h("b", { text: title }), h("span", { text: q })), h("div", { class: "a" }, chip(fl, ft), l.note ? h("span", { class: "break", text: l.note }) : null));
+  })) : null;
+  const cited = v.cited_article_texts?.length ? h("div", { style: "padding:0 20px 20px" }, h("h3", { class: "small", style: "margin:16px 0 8px", text: "Articles the panel relied on" }),
+    h("ol", { class: "articles" }, v.cited_article_texts.map((x) => h("li", { class: "article hit" }, h("span", { class: "n", text: `Art. ${x.article}` }), h("span", { class: "break", text: x.text }))))) : null;
+  const review = v.steward_review ? h("div", { class: "banner info", style: "margin:0 20px 20px" }, svgIcon("gavel"),
+    h("div", { class: "grow" }, h("b", { text: v.steward_review.action === "REVERSE" ? "The steward reversed the decision" : "The steward reaffirmed the decision" }), h("span", { class: "small break", text: v.steward_review.note }))) : null;
+  return h("section", { class: "panel-flush", "aria-labelledby": "verH" },
+    h("div", { class: "verdict" },
+      sealSvg(vd.outcome, vd.round, fresh),
+      h("div", { class: "verdict-text" },
+        h("span", { class: "k" }, byConcession ? "Steward conceded" : `Panel ruling, round ${vd.round}`, ", ", timeEl(vd.ruled_at)),
+        h("h2", { id: "verH", text: r.title }),
+        h("p", { class: "muted", text: r.text }),
+        h("p", { class: "reason break", text: vd.reasoning }))),
+    lensRows, cited, review);
+}
+function settlementPanel(v) {
+  const s = v.settlement, stake = BigInt(s.stake), toA = BigInt(s.to_appellant);
+  const pct = stake === 0n ? 0 : Number((toA * 1000n) / stake) / 10;
+  const [fl] = FINAL[v.final_outcome] || [v.final_outcome];
+  return h("section", { class: "panel", "aria-labelledby": "setH" },
+    h("div", { class: "row-between wrap" }, h("h2", { id: "setH", style: "margin:0", text: "Where the stake went" }), chip(fl, (FINAL[v.final_outcome] || [])[1] || "")),
+    h("div", { class: "split", style: "margin-top:14px", role: "img", "aria-label": `${pct}% returned to the appellant` }, h("i", { class: "a", style: `width:${pct}%` }), h("i", { class: "b", style: `width:${100 - pct}%` })),
+    h("div", { class: "legend num" },
+      h("span", {}, h("i", { style: "background:var(--pos)" }), `Appellant ${gen(s.to_appellant)}`),
+      h("span", {}, h("i", { style: "background:var(--ink-3)" }), `Steward ${gen(s.to_steward)}`)),
+    h("p", { class: "subtle", style: "margin-top:10px" }, "Settled ", timeEl(s.settled_at), ". Payouts are withdrawn from the Account page."));
+}
+function caseFilePanel(a) {
+  const msg = (side, title, text, at) => h("article", { class: `msg ${side}` }, h("div", { class: "who" }, h("i"), title, at ? h("span", { style: "font-weight:500" }, " ", timeEl(at)) : null), h("p", { text }));
+  const items = [msg("appellant", "Appellant's grounds", a.grounds, a.filed_at)];
+  if (a.grounds_round2) items.push(msg("appellant", "Second appeal grounds", a.grounds_round2));
+  const resp = a.response ? a.response.split(" || ROUND 2: ") : [];
+  if (resp[0]) items.push(msg("steward", "Steward's reply", resp[0]));
+  if (resp[1]) items.push(msg("steward", "Steward's reply, round 2", resp[1]));
+  for (const e of a.evidence) items.push(msg(e.by, e.by === "appellant" ? "Appellant's evidence" : "Steward's evidence", e.text, e.at));
+  if (!resp.length) items.push(h("p", { class: "subtle", text: "The steward hasn't replied." }));
+  return h("section", { class: "panel", "aria-labelledby": "fileH" }, h("h2", { id: "fileH", text: "Case file" }), h("div", { class: "thread" }, items));
+}
+function timeline(a) {
+  const L = (x) => ({
+    filed: ["send", `Appeal filed with ${gen(x.stake)}`], responded: ["file", "Steward replied"], conceded: ["gavel", "Steward conceded"],
+    ruled: ["gavel", `Round ${x.round} ruling: ${RULING[x.outcome]?.short || x.outcome}`], reviewed: ["gavel", `Steward ${x.action === "REVERSE" ? "reversed" : "reaffirmed"} the decision`],
+    second_appeal: ["send", `Second appeal, ${gen(x.extra_stake)} added`], settled: ["coin", `Settled: ${(FINAL[x.outcome] || [x.outcome])[0]}`],
+  }[x.event] || ["circle", x.event]);
+  return h("ol", { class: "timeline" }, a.history.map((x) => { const [ic, t] = L(x); return h("li", {}, h("span", { class: "ic" }, svgIcon(ic)), h("div", {}, h("span", { text: t }), timeEl(x.at))); }));
+}
+
+/* ---------- New charter ---------- */
+const WINDOWS = [["600", "10 minutes"], ["3600", "1 hour"], ["86400", "1 day"], ["259200", "3 days"], ["604800", "7 days"], ["custom", "Custom (seconds)"]];
+function viewNew(tok) {
+  const name = field({ label: "Community name", required: true, max: LIMITS.name[1], placeholder: "Open Garden DAO", validate: lenRule(...LIMITS.name, "The name") });
+  const preview = h("div", { class: "preview", "aria-live": "polite" });
+  const articles = field({ label: "Articles", required: true, multiline: true, rows: 7, placeholder: "One rule per line\nMembers must treat each other with respect.\nSpam is not allowed in any channel.\nA ban requires a written warning first.",
+    hint: "One article per line. 2 to 12 articles, each 10 to 400 characters.",
+    validate: (v) => {
+      const list = splitArticles(v);
+      if (list.length < 2) return "Add at least 2 articles, one per line.";
+      if (list.length > 12) return `At most 12 articles (${list.length} now).`;
+      const bad = list.findIndex((t) => t.length < 10 || t.length > 400);
+      return bad >= 0 ? `Article ${bad + 1} must be 10 to 400 characters (${list[bad].length} now).` : "";
+    }, onInput: () => paintArticles() });
+  const stake = field({ label: "Minimum stake (GEN)", required: true, value: "1", inputmode: "numeric", hint: "Whole GEN, 1 or more.",
+    validate: (v) => (/^\d+$/.test(v) && +v >= 1 && +v <= 1000000 ? "" : "Use a whole number from 1 to 1,000,000."), onInput: () => paintRules() });
+  const winField = (label, hint, def) => {
+    const sel = field({ label, options: WINDOWS, value: def, hint, onInput: () => { custom.el.hidden = sel.value !== "custom"; paintRules(); } });
+    const custom = field({ label: `${label} in seconds`, inputmode: "numeric", value: "3600", validate: (v) => (sel.value !== "custom" || (/^\d+$/.test(v) && +v >= 60 && +v <= 2592000) ? "" : "Use 60 to 2,592,000 seconds (30 days)."), onInput: () => paintRules() });
+    custom.el.hidden = true;
+    return { sel, custom, get seconds() { return sel.value === "custom" ? Number(custom.value) : Number(sel.value); } };
+  };
+  const resp = winField("Steward reply window", "How long the steward has to reply, and to review a case sent back.", "86400");
+  const appeal = winField("Appeal window", "How long members have to appeal a decision, or to appeal a ruling again.", "259200");
+  const pct = (label, def, lo, hi, hint) => field({ label, required: true, value: def, inputmode: "decimal", hint,
+    validate: (v) => { if (!/^\d+(\.\d{1,2})?$/.test(v)) return "Enter a percentage like 20 or 12.5."; const n = +v; return n < lo || n > hi ? `Use ${lo}% to ${hi}%.` : ""; }, onInput: () => paintRules() });
+  const up = pct("Refund if upheld (%)", "20", 0, 50, "What a member who loses keeps. 0% to 50%.");
+  const rem = pct("Refund if sent back and reaffirmed (%)", "70", 50, 100, "50% to 100%.");
+  const rules = h("div", { class: "preview", "aria-live": "polite" });
+  function paintArticles() {
+    const list = splitArticles(articles.value);
+    preview.replaceChildren(h("h4", { text: list.length ? `${plural(list.length, "article", "articles")} will be recorded` : "Article preview" }),
+      list.length ? h("ol", { class: "articles" }, list.slice(0, 12).map((t, i) => h("li", { class: "article" }, h("span", { class: "n", text: `Art. ${i + 1}` }), h("span", { class: "break", text: t })))) : h("span", { class: "subtle", text: "Articles appear here as you type." }));
+  }
+  function paintRules() {
+    const s = /^\d+$/.test(stake.value) ? stake.value : "?";
+    const w = (x) => (Number.isFinite(x.seconds) && x.seconds >= 60 ? windowText(x.seconds) : "?");
+    rules.replaceChildren(h("h4", { text: "How appeals will work" }), h("ul", {},
+      h("li", { text: `Members stake at least ${s} GEN to appeal, within ${w(appeal)} of a decision.` }),
+      h("li", { text: `You have ${w(resp)} to reply to each appeal.` }),
+      h("li", { text: `Overturned: the member gets everything back. Upheld: the member keeps ${up.value || "?"}% and you receive the rest.` }),
+      h("li", { text: `Sent back and you reaffirm: the member keeps ${rem.value || "?"}%. If you don't review in time, they keep 100%.` })));
+  }
+  paintArticles(); paintRules();
+  const fields = [name, articles, stake, resp.custom, appeal.custom, up, rem];
+  const form = h("form", { class: "form", novalidate: true, "aria-label": "Register a charter" },
+    h("section", { class: "panel form" }, h("h2", { text: "Rules" }), name.el, articles.el, preview),
+    h("section", { class: "panel form" }, h("h2", { text: "Appeal settings" }),
+      h("div", { class: "grid-2" }, stake.el, h("div")),
+      h("div", { class: "grid-2" }, h("div", { class: "stack-sm" }, resp.sel.el, resp.custom.el), h("div", { class: "stack-sm" }, appeal.sel.el, appeal.custom.el)),
+      h("div", { class: "grid-2" }, up.el, rem.el), rules),
+    banner("info", "info", "Charters can't be edited", "Once registered, the rules and settings are fixed. You become the steward: the only address that can record decisions under this charter."),
+    h("div", { class: "form-actions" }, button("Register charter", { type: "submit", key: "register" })));
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!checkAll(fields)) return;
+    const bps = (v) => Math.round(Number(v) * 100);
+    const list = splitArticles(articles.value);
+    await transact({ key: "register", title: "Register charter", fn: "register_charter",
+      args: [clean(name.value), list.join("|"), BigInt(stake.value), BigInt(resp.seconds), BigInt(appeal.seconds), BigInt(bps(up.value)), BigInt(bps(rem.value))],
+      rows: [["Name", clean(name.value)], ["Articles", String(list.length)], ["Minimum stake", `${stake.value} GEN`], ["Reply window", windowText(resp.seconds)], ["Appeal window", windowText(appeal.seconds)], ["Refunds", `Upheld ${up.value}%, sent back ${rem.value}%`]],
+      intro: "You'll be the steward of this charter.", confirmLabel: "Sign and register", successText: "Your charter is registered.",
+      onAccepted: (r) => { if (r && r.charter_id !== undefined) location.hash = `#/charter/${r.charter_id}`; } });
+  });
+  render(tok, pageHead("New charter", "Write your community's rules once. Members can appeal any decision you record under them, and the panel judges appeals only against this text."),
+    contractMissing() ? setupState() : form);
+}
+
+/* ---------- Account ---------- */
+async function viewAccount(tok) {
+  const settings = h("section", { class: "panel stack", "aria-labelledby": "setcH" }, h("h2", { id: "setcH", style: "margin:0", text: "Contract" }),
+    contractMissing() ? h("p", { class: "muted", text: "No contract address set." }) : addrView(CONTRACT, { full: true }),
+    h("div", { class: "row wrap" }, button(contractMissing() ? "Set contract address" : "Change address", { variant: "secondary", icon: "link", onclick: openContractDialog })));
+  const w = state.wallet;
+  if (!w.address) {
+    return render(tok, pageHead("Account", "Your balance, your record and your cases."),
+      h("div", { class: "stack-lg" }, h("div", { class: "panel" }, emptyState({ icon: "wallet", title: "Connect a wallet", body: "See what you can withdraw, your appeals and the charters you steward.", action: button("Connect wallet", { icon: "wallet", onclick: openWalletDialog }) })), settings));
+  }
+  render(tok, pageHead("Account", null), skeleton(5));
+  if (contractMissing()) return render(tok, pageHead("Account", null), settings);
+  try {
+    const [p, recent] = await Promise.all([view("get_profile", [w.address]), view("list_appeals", ["", 0, 30])]);
+    if (tok !== routeToken) return;
+    const owed = BigInt(p.withdrawable_wei);
+    const mine = recent.rows.filter((r) => same(r.appellant, w.address) || same(r.steward, w.address));
+    const kv = (pairs) => h("dl", { class: "kv" }, pairs.flatMap(([k, v]) => [h("dt", { text: k }), h("dd", { class: "num", text: String(v) })]));
+    render(tok,
+      pageHead("Account", null),
+      h("div", { class: "stack-lg" },
+        h("section", { class: "panel stack", "aria-labelledby": "balH" },
+          h("div", { class: "row-between wrap" }, h("h2", { id: "balH", style: "margin:0", text: "Withdrawable balance" }), addrView(w.address)),
+          h("p", { class: "num", style: "font-size:32px;font-weight:700;letter-spacing:-.02em", text: gen(owed) }),
+          h("p", { class: "subtle", text: owed === 0n ? "Refunds and payouts from settled cases collect here." : "From settled cases and refunded payments. Withdrawing sends it to your wallet." }),
+          h("div", { class: "row wrap" }, button("Withdraw to wallet", { key: "withdraw", icon: "coin", onclick: owed === 0n ? () => toast({ tone: "info", title: "Nothing to withdraw yet" }) : () =>
+            transact({ key: "withdraw", title: "Withdraw", fn: "withdraw", args: [], rows: [["Amount", gen(owed)], ["To", shortAddr(w.address)]], confirmLabel: "Sign and withdraw", successText: `${gen(owed)} sent to your wallet.`, onAccepted: () => route() }) }))),
+        h("div", { class: "grid-2" },
+          h("section", { class: "panel" }, h("h2", { text: "As a member" }), kv([["Appeals filed", p.appeals_filed], ["Won", `${p.overturned}${p.conceded ? ` (${p.conceded} conceded)` : ""}`], ["Upheld against you", p.upheld], ["Sent back", p.remanded], ["Voided", p.voided], ["Staked", gen(p.staked_wei)], ["Returned", gen(p.returned_wei)], ["Forfeited", gen(p.forfeited_wei)]])),
+          h("section", { class: "panel" }, h("h2", { text: "As a steward" }), kv([["Charters", p.charters], ["Decisions recorded", p.decisions_recorded], ["Overturned on appeal", p.decisions_overturned_against], ["Stake received", gen(p.earned_wei)]]))),
+        h("section", { "aria-labelledby": "myH" }, h("h2", { id: "myH", class: "section-title", style: "margin-top:0", text: "Your recent cases" }),
+          h("p", { class: "subtle", style: "margin-bottom:10px", text: "From the 30 most recent cases on this contract." }),
+          h("div", { class: "panel-flush" }, mine.length ? h("ul", { class: "list" }, mine.map(caseRow)) : emptyState({ icon: "cases", title: "No recent cases involve you", body: "Cases you file or steward show up here." }))),
+        settings));
+  } catch (e) { render(tok, pageHead("Account", null), errorState(e, route), settings); }
+}
+
+/* =====================================================================
+   Router
+   ===================================================================== */
+function route() {
+  const tok = ++routeToken;
+  const [name = "", id] = location.hash.replace(/^#\/?/, "").split("/").map((x) => decodeURIComponent(x));
+  const tabOf = { "": "cases", case: "cases", appeal: "cases", charters: "charters", charter: "charters", decision: "charters", new: "new", account: "account" };
+  currentTab = tabOf[name] || "cases";
+  renderChrome();
+  const titles = { "": "Cases", case: `Case ${id}`, appeal: `Case ${id}`, charters: "Charters", charter: "Charter", decision: `Decision ${id}`, new: "New charter", account: "Account" };
+  document.title = `${titles[name] || "Cases"} | PolicyCourt`;
+  const go = {
+    "": () => viewCases(tok), charters: () => viewCharters(tok), charter: () => viewCharter(tok, id), decision: () => viewDecision(tok, id),
+    case: () => viewCase(tok, id), appeal: () => viewCase(tok, id), new: () => viewNew(tok), account: () => viewAccount(tok),
+  }[name] || (() => viewCases(tok));
+  go();
+}
+let lastHash = location.hash;
+window.addEventListener("hashchange", () => {
+  const changed = location.hash.split("/").slice(0, 3).join("/") !== lastHash.split("/").slice(0, 3).join("/");
+  lastHash = location.hash; route();
+  if (changed) { window.scrollTo(0, 0); $("main").focus({ preventScroll: true }); }
+});
+try { if (/^0x[0-9a-f]{64}$/.test(sessionStorage.getItem(TEST_SLOT) || "")) connectTest(); else route(); } catch { route(); }
+</script>
+</body>
+</html>
