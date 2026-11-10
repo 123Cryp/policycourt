@@ -1,0 +1,32 @@
+name: Unzip uploaded project
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "policycourt.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Unzip into the repository root
+        run: |
+          rm -rf /tmp/pc && mkdir /tmp/pc
+          unzip -q policycourt.zip -d /tmp/pc
+          cp -a /tmp/pc/policycourt/. .
+          rm policycourt.zip
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add PolicyCourt project files" || echo "nothing to commit"
+          git push
