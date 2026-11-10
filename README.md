@@ -24,6 +24,18 @@ A community registers a written charter once. A steward records decisions under 
 6. Verdict: `UPHELD`, `OVERTURNED` or `REMANDED`, stored with reasoning, three lens findings and the cited articles.
 7. Settlement and, for non-overturned round 1 rulings, a window for a second appeal.
 
+## Deployment
+
+| Item | Value |
+| --- | --- |
+| Network | GenLayer Studio |
+| Contract | `0xA3b5deD60C8F69388F6BbD79a3C3Dd37cA91A18e` |
+| Explorer | https://explorer-studio.genlayer.com/address/0xA3b5deD60C8F69388F6BbD79a3C3Dd37cA91A18e |
+| Frontend | https://123cryp.github.io/policycourt/ |
+| Version | v1.2.0 |
+
+The frontend uses this contract by default. Open `index.html?contract=ADDRESS` to point it at another deployment.
+
 ## How the judgment works
 
 Validators run the model on a prompt that contains the charter, the decision, the grounds, the evidence and the steward's response. All case text is treated as untrusted data. The model must answer three independent lenses, each as `SUPPORTS_DECISION`, `AGAINST_DECISION` or `INSUFFICIENT`:
