@@ -3,7 +3,10 @@ from _bootstrap import *
 
 
 def solvent(tc, c):
-    tc.assertEqual(total_pending(c), int(c.balance), "contract balance must equal all owed GEN once everything is settled")
+    acc = accounting(c)
+    tc.assertTrue(acc["balanced"], acc)
+    tc.assertEqual(int(acc["owed_to_users_wei"]), total_pending(c))
+    tc.assertEqual(pending(c, STEWARD), 0, "a steward must never be credited from a forfeit")
 
 
 class SettlementTests(unittest.TestCase):
@@ -16,7 +19,7 @@ class SettlementTests(unittest.TestCase):
         out = jl(self.c.accept_ruling(aid))
         self.assertEqual(out["final_outcome"], "UPHELD")
         self.assertEqual(pending(self.c, MEMBER), 5 * GEN * 2000 // 10000)
-        self.assertEqual(pending(self.c, STEWARD), 5 * GEN - 5 * GEN * 2000 // 10000)
+        self.assertEqual(treasury(self.c), 5 * GEN - 5 * GEN * 2000 // 10000)
         self.assertEqual(jl(self.c.get_decision(did))["status"], "upheld")
         solvent(self, self.c)
 
@@ -25,7 +28,7 @@ class SettlementTests(unittest.TestCase):
         set_caller(STRANGER)
         expect_error(self, self.c.finalize_appeal, aid)
         CLOCK.advance(APPEAL_WINDOW + 1)
-        self.assertIn("finalize_appeal", jl(self.c.get_appeal_actions(aid, STRANGER))["actions"])
+        self.assertIn("finalize_appeal", jl(self.c.get_appeal_actions(aid, STRANGER, CLOCK.now.isoformat()))["actions"])
         self.c.finalize_appeal(aid)
         self.assertEqual(jl(self.c.get_appeal(aid))["final_outcome"], "UPHELD")
         solvent(self, self.c)
@@ -45,8 +48,8 @@ class SettlementTests(unittest.TestCase):
         out = jl(self.c.accept_ruling(aid))
         self.assertEqual(out["final_outcome"], "REMANDED")
         self.assertEqual(pending(self.c, MEMBER), 5 * GEN * 7000 // 10000)
-        self.assertEqual(pending(self.c, STEWARD), 5 * GEN * 3000 // 10000)
-        self.assertEqual(jl(self.c.get_decision(did))["status"], "upheld")
+        self.assertEqual(treasury(self.c), 5 * GEN * 3000 // 10000)
+        self.assertEqual(jl(self.c.get_decision(did))["status"], "reaffirmed")
         solvent(self, self.c)
 
     def test_remand_reversed_by_steward_refunds_all(self):
@@ -91,7 +94,7 @@ class SettlementTests(unittest.TestCase):
         set_caller(STRANGER)
         expect_error(self, self.c.void_stalled_appeal, aid)
         CLOCK.advance(RESP_WINDOW + 3 * DAY + 1)
-        self.assertIn("void_stalled_appeal", jl(self.c.get_appeal_actions(aid, STRANGER))["actions"])
+        self.assertIn("void_stalled_appeal", jl(self.c.get_appeal_actions(aid, STRANGER, CLOCK.now.isoformat()))["actions"])
         out = jl(self.c.void_stalled_appeal(aid))
         self.assertEqual(out["status"], "void")
         self.assertEqual(pending(self.c, MEMBER), 5 * GEN)
@@ -109,14 +112,17 @@ class SettlementTests(unittest.TestCase):
         set_caller(STRANGER)
         expect_error(self, self.c.withdraw)
 
-    def test_steward_earnings_tracked_per_charter_and_profile(self):
+    def test_forfeit_goes_to_treasury_and_is_ledgered(self):
         cid, did, aid = ruled_case(self.c, UPHOLD)
         set_caller(MEMBER)
         self.c.accept_ruling(aid)
         kept = 5 * GEN - 5 * GEN * 2000 // 10000
-        self.assertEqual(jl(self.c.get_charter(cid))["earned_wei"], str(kept))
-        self.assertEqual(jl(self.c.get_charter_stats(cid))["stake_kept_by_steward_wei"], str(kept))
-        self.assertEqual(jl(self.c.get_profile(STEWARD))["earned_wei"], str(kept))
+        self.assertEqual(jl(self.c.get_charter(cid))["forfeited_to_treasury_wei"], str(kept))
+        self.assertEqual(jl(self.c.get_charter_stats(cid))["forfeited_to_treasury_wei"], str(kept))
+        self.assertNotIn("earned_wei", jl(self.c.get_profile(STEWARD)))
+        self.assertEqual(pending(self.c, STEWARD), 0)
+        entry = jl(self.c.list_treasury_entries(0, 5))["rows"][0]
+        self.assertEqual((entry["type"], entry["amount_wei"], entry["appeal_id"]), ("FORFEIT", str(kept), aid))
         self.assertEqual(jl(self.c.get_profile(MEMBER))["forfeited_wei"], str(kept))
 
 
@@ -173,14 +179,25 @@ class SecondAppealTests(unittest.TestCase):
         a = rule(self.c, self.aid, UPHOLD)
         self.assertEqual(a["final_outcome"], "UPHELD")
         self.assertEqual(pending(self.c, MEMBER), 10 * GEN * 2000 // 10000)
-        self.assertEqual(pending(self.c, STEWARD), 10 * GEN * 8000 // 10000)
+        self.assertEqual(treasury(self.c), 10 * GEN * 8000 // 10000)
         solvent(self, self.c)
 
-    def test_round_two_remand_answer_is_treated_as_upheld(self):
+    def test_round_two_disproportionate_sanction_overturns(self):
         self.again()
         CLOCK.advance(RESP_WINDOW + 1)
         a = rule(self.c, self.aid, REMAND)
-        self.assertEqual(a["final_outcome"], "UPHELD")
+        self.assertEqual(a["final_outcome"], "OVERTURNED")
+        self.assertEqual(pending(self.c, MEMBER), 10 * GEN)
+
+    def test_round_two_procedure_failure_alone_overturns_like_the_live_case(self):
+        self.again()
+        CLOCK.advance(RESP_WINDOW + 1)
+        live = lens("SUPPORTS_DECISION", "SUPPORTS_DECISION", "AGAINST_DECISION", "No written warning was issued, so the ban must be overturned.")
+        a = rule(self.c, self.aid, live)
+        self.assertEqual((a["final_outcome"], a["verdict"]["outcome"]), ("OVERTURNED", "OVERTURNED"))
+        self.assertEqual(pending(self.c, MEMBER), 10 * GEN)
+        self.assertEqual(jl(self.c.get_decision(self.did))["status"], "overturned")
+        solvent(self, self.c)
 
     def test_round_two_prompt_includes_prior_ruling_and_new_grounds(self):
         self.again()
@@ -219,7 +236,7 @@ class SecondAppealTests(unittest.TestCase):
         out = jl(self.c.void_stalled_appeal(self.aid))
         first_back = 5 * GEN * 2000 // 10000
         self.assertEqual(pending(self.c, MEMBER), 5 * GEN + first_back)
-        self.assertEqual(pending(self.c, STEWARD), 5 * GEN - first_back)
+        self.assertEqual(treasury(self.c), 5 * GEN - first_back)
         self.assertEqual(out["settlement"]["applied_result"], "UPHELD")
         d = jl(self.c.get_decision(self.did))
         self.assertEqual((d["status"], d["appeal_id"]), ("upheld", self.aid))

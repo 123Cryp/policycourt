@@ -40,7 +40,7 @@ class ContractFileTests(unittest.TestCase):
 
     def test_no_persian_in_any_deliverable(self):
         persian = re.compile("[؀-ۿ]")
-        for name in ["contract.py", "index.html", "README.md", "ARCHITECTURE.md"]:
+        for name in ["contract.py", "index.html", "README.md", "SECURITY_REVIEW.md"]:
             if os.path.exists(os.path.join(ROOT, name)):
                 self.assertIsNone(persian.search(read(name)), name)
 
@@ -86,6 +86,13 @@ class FrontendTests(unittest.TestCase):
 
     def test_no_private_key_persistence(self):
         self.assertNotIn("localStorage.setItem(\"policycourt.key", self.html)
+
+    def test_tabular_numbers_are_not_page_wide(self):
+        body_rule = re.search(r"\nbody\{[^}]*\}", self.html).group(0)
+        self.assertNotIn("tnum", body_rule)
+        self.assertNotIn("tabular-nums", body_rule)
+        self.assertIn("text-size-adjust:100%", self.html)
+        self.assertNotIn('type="date"', self.html)
 
     def test_mobile_and_dark_mode(self):
         self.assertIn("viewport-fit=cover", self.html)

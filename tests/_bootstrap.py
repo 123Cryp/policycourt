@@ -182,3 +182,20 @@ def expect_error(testcase, fn, *args, **kwargs):
     with testcase.assertRaises(gl.vm.UserError) as ctx:
         fn(*args, **kwargs)
     return str(ctx.exception)
+
+
+def treasury(c):
+    return int(jl(c.get_treasury())["balance_wei"])
+
+
+def accounting(c):
+    return jl(c.get_accounting())
+
+
+def withdraw_as(c, who):
+    set_caller(who)
+    before = len(gl.evm.transfers)
+    out = c.withdraw()
+    for tx in gl.evm.transfers[before:]:
+        c.balance = c.balance - u256(int(tx["value"]))
+    return out

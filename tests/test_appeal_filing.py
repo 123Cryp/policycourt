@@ -75,7 +75,7 @@ class FilingTests(unittest.TestCase):
         for i in range(5):
             self.c.add_evidence(a, f"Extra evidence item number {i} for the case")
         expect_error(self, self.c.add_evidence, a, "One more than the cap allows")
-        self.assertNotIn("add_evidence", jl(self.c.get_appeal_actions(a, MEMBER))["actions"])
+        self.assertNotIn("add_evidence", jl(self.c.get_appeal_actions(a, MEMBER, CLOCK.now.isoformat()))["actions"])
 
     def test_response_by_steward_only_and_once(self):
         a = jl(self.file())["appeal_id"]

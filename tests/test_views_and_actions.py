@@ -4,7 +4,7 @@ from _bootstrap import *
 
 
 def actions(c, aid, who):
-    return jl(c.get_appeal_actions(aid, who))["actions"]
+    return jl(c.get_appeal_actions(aid, who, CLOCK.now.isoformat()))["actions"]
 
 
 class ActionMatrixTests(unittest.TestCase):
@@ -14,13 +14,13 @@ class ActionMatrixTests(unittest.TestCase):
         self.did = decide(self.c, self.cid)
 
     def test_decision_actions_per_role(self):
-        self.assertEqual(jl(self.c.get_decision_actions(self.did, MEMBER))["actions"], ["file_appeal"])
-        self.assertEqual(jl(self.c.get_decision_actions(self.did, MEMBER))["role"], "subject")
-        self.assertEqual(jl(self.c.get_decision_actions(self.did, STEWARD))["actions"], [])
-        self.assertEqual(jl(self.c.get_decision_actions(self.did, STEWARD))["role"], "steward")
-        self.assertEqual(jl(self.c.get_decision_actions(self.did, STRANGER))["role"], "observer")
+        self.assertEqual(jl(self.c.get_decision_actions(self.did, MEMBER, CLOCK.now.isoformat()))["actions"], ["file_appeal"])
+        self.assertEqual(jl(self.c.get_decision_actions(self.did, MEMBER, CLOCK.now.isoformat()))["role"], "subject")
+        self.assertEqual(jl(self.c.get_decision_actions(self.did, STEWARD, CLOCK.now.isoformat()))["actions"], [])
+        self.assertEqual(jl(self.c.get_decision_actions(self.did, STEWARD, CLOCK.now.isoformat()))["role"], "steward")
+        self.assertEqual(jl(self.c.get_decision_actions(self.did, STRANGER, CLOCK.now.isoformat()))["role"], "observer")
         CLOCK.advance(APPEAL_WINDOW + 1)
-        self.assertEqual(jl(self.c.get_decision_actions(self.did, MEMBER))["actions"], [])
+        self.assertEqual(jl(self.c.get_decision_actions(self.did, MEMBER, CLOCK.now.isoformat()))["actions"], [])
 
     def test_filed_appeal_actions(self):
         aid = appeal(self.c, self.did)
@@ -60,6 +60,46 @@ class ActionMatrixTests(unittest.TestCase):
         self.c.concede_appeal(aid, "On review no written warning was sent.")
         for who in (MEMBER, STEWARD, STRANGER):
             self.assertEqual(actions(self.c, aid, who), [])
+
+
+class ViewClockTests(unittest.TestCase):
+    def setUp(self):
+        self.c = make_contract()
+        self.cid = register(self.c)
+        self.did = decide(self.c, self.cid)
+        self.aid = appeal(self.c, self.did)
+
+    def test_views_never_read_the_wall_clock(self):
+        original = PolicyCourt.__dict__["_now_utc"]
+        def boom():
+            raise AssertionError("a view read the clock")
+        PolicyCourt._now_utc = staticmethod(boom)
+        try:
+            when = CLOCK.now.isoformat()
+            jl(self.c.get_appeal_actions(self.aid, MEMBER, when))
+            jl(self.c.get_decision_actions(self.did, MEMBER, when))
+            for fn, args in [(self.c.get_stats, ()), (self.c.get_profile, (MEMBER,)), (self.c.list_appeals, ("", 0, 5)),
+                             (self.c.list_decisions, ("", 0, 5)), (self.c.list_charters, (0, 5)), (self.c.get_verdict, (self.aid,)),
+                             (self.c.get_charter_stats, (self.cid,)), (self.c.get_rules, ())]:
+                fn(*args)
+        finally:
+            PolicyCourt._now_utc = original
+
+    def test_as_of_drives_deadlines(self):
+        early = CLOCK.now.isoformat()
+        late = (CLOCK.now + __import__("datetime").timedelta(seconds=RESP_WINDOW + 1)).isoformat()
+        self.assertNotIn("rule_appeal", jl(self.c.get_appeal_actions(self.aid, STRANGER, early))["actions"])
+        self.assertIn("rule_appeal", jl(self.c.get_appeal_actions(self.aid, STRANGER, late))["actions"])
+
+    def test_browser_style_and_z_times_are_accepted(self):
+        for stamp in ["2026-11-01T12:00:00Z", "2026-11-01T12:00:00+00:00", "2026-11-01T12:00:00"]:
+            jl(self.c.get_appeal_actions(self.aid, MEMBER, stamp))
+
+    def test_missing_or_bad_as_of_gives_a_clear_error(self):
+        msg = expect_error(self, self.c.get_appeal_actions, self.aid, MEMBER, "")
+        self.assertIn("as_of", msg)
+        msg = expect_error(self, self.c.get_decision_actions, self.did, MEMBER, "yesterday")
+        self.assertIn("ISO-8601", msg)
 
 
 class ViewTests(unittest.TestCase):
@@ -123,6 +163,70 @@ class ViewTests(unittest.TestCase):
         self.assertEqual((empty["appeals_filed"], empty["withdrawable_wei"]), (0, "0"))
         self.assertEqual(self.c.get_pending_withdrawal(STRANGER), "0")
 
+    def test_status_counters_follow_every_transition(self):
+        cid, did, aid = full_case(self.c)
+        st = lambda: jl(self.c.get_charter_stats(cid))["decisions_by_status"]
+        self.assertEqual(st(), {"under_appeal": 1})
+        after_response_window(self.c)
+        rule(self.c, aid, REMAND)
+        set_caller(STEWARD)
+        self.c.review_remand(aid, "REAFFIRM", "Reviewed the log again and the ban stands.")
+        set_caller(MEMBER)
+        self.c.accept_ruling(aid)
+        self.assertEqual(st(), {"reaffirmed": 1})
+        decide(self.c, cid, subject=MEMBER2)
+        self.assertEqual(st(), {"reaffirmed": 1, "in_force": 1})
+        self.assertEqual(jl(self.c.get_charter_stats(cid))["decisions"], 2)
+
+    def test_void_moves_the_counter_back_to_in_force(self):
+        cid, did, aid = full_case(self.c)
+        CLOCK.advance(RESP_WINDOW + 3 * DAY + 1)
+        set_caller(STRANGER)
+        self.c.void_stalled_appeal(aid)
+        self.assertEqual(jl(self.c.get_charter_stats(cid))["decisions_by_status"], {"in_force": 1})
+
+    def test_paging_reads_only_one_record_past_the_page(self):
+        cid = register(self.c)
+        for i in range(8):
+            decide(self.c, cid, subject="0x" + hex(0x200 + i)[2:].rjust(40, "0"))
+        reads = []
+        real = self.c.decisions
+        class Spy(dict):
+            def __getitem__(s, k):
+                reads.append(k)
+                return real[k]
+            def __contains__(s, k):
+                return k in real
+        self.c.decisions = Spy()
+        try:
+            page = jl(self.c.list_decisions("", 0, 2))
+        finally:
+            self.c.decisions = real
+        self.assertEqual((len(page["rows"]), page["more"]), (2, True))
+        self.assertLessEqual(len(reads), 3)
+        reads.clear()
+        self.c.decisions = Spy()
+        try:
+            page = jl(self.c.list_decisions(cid, 0, 2))
+        finally:
+            self.c.decisions = real
+        self.assertEqual((len(page["rows"]), page["more"]), (2, True))
+        self.assertEqual(len(reads), 3)
+
+    def test_writes_fail_closed_without_a_transaction_clock(self):
+        import importlib.util
+        import _bootstrap
+        spec = importlib.util.spec_from_file_location("pc_fresh_clock", _bootstrap.CONTRACT_PATH)
+        fresh = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fresh)
+        try:
+            PolicyCourt._now_utc = fresh.PolicyCourt.__dict__["_now_utc"]
+            set_caller(STEWARD)
+            msg = expect_error(self, self.c.register_charter, "Open Garden DAO", ARTICLES, 5, RESP_WINDOW, APPEAL_WINDOW, 2000, 7000)
+            self.assertIn("timestamp", msg)
+        finally:
+            PolicyCourt._now_utc = staticmethod(lambda: CLOCK.now)
+
     def test_charter_stats_group_decisions_by_status(self):
         cid, did, aid = ruled_case(self.c, OVERTURN)
         decide(self.c, cid, subject=MEMBER2)
@@ -136,8 +240,8 @@ class ViewTests(unittest.TestCase):
 
     def test_views_reject_unknown_ids(self):
         for fn, args in [(self.c.get_decision, ("1",)), (self.c.get_appeal, ("1",)), (self.c.get_verdict, ("1",)),
-                         (self.c.get_charter_stats, ("1",)), (self.c.get_appeal_actions, ("1", MEMBER)),
-                         (self.c.get_decision_actions, ("1", MEMBER))]:
+                         (self.c.get_charter_stats, ("1",)), (self.c.get_appeal_actions, ("1", MEMBER, "2026-11-01T12:00:00Z")),
+                         (self.c.get_decision_actions, ("1", MEMBER, "2026-11-01T12:00:00Z"))]:
             expect_error(self, fn, *args)
 
     def test_get_verdict_before_ruling_has_no_verdict(self):

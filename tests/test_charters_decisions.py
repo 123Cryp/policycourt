@@ -58,7 +58,9 @@ class DecisionTests(unittest.TestCase):
         self.assertEqual(d["subject"], MEMBER)
         self.assertEqual(d["cited_articles"], [2])
         self.assertEqual(d["filing_deadline"], jl(self.c.get_decision(did))["filing_deadline"])
-        self.assertEqual(jl(self.c.get_charter(self.cid))["decision_ids"], [did])
+        ch = jl(self.c.get_charter(self.cid))
+        self.assertNotIn("decision_ids", ch)
+        self.assertEqual((ch["decision_count"], ch["status_counts"]), (1, {"in_force": 1}))
 
     def test_only_steward_can_record(self):
         set_caller(STRANGER)
